@@ -1,0 +1,57 @@
+name: Reset repository allo stato iniziale
+
+# ATTENZIONE — workflow distruttivo. Riporta il branch di default al commit
+# taggato "template-init" (force-push) ed elimina permanentemente tutti gli
+# altri branch remoti. Vedi scripts/reset-repository.sh per i dettagli.
+#
+# Trigger solo manuale, con conferma testuale obbligatoria: non gira su
+# push/PR e non può essere lanciato per sbaglio senza digitare "RESET".
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Digita esattamente "RESET" per confermare (operazione irreversibile)'
+        required: true
+      dry_run:
+        description: "Anteprima senza modificare nulla"
+        type: boolean
+        default: false
+      target_ref:
+        description: "Tag o commit a cui riportare il branch di default"
+        default: "template-init"
+
+permissions:
+  contents: write
+
+jobs:
+  reset:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verifica conferma
+        run: |
+          if [ "${{ inputs.confirm }}" != "RESET" ]; then
+            echo "Conferma non valida: il campo 'confirm' deve contenere esattamente 'RESET'."
+            echo "Nessuna operazione è stata eseguita."
+            exit 1
+          fi
+
+      - name: Checkout (storia completa)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # token con permessi di scrittura, necessario per il force-push
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Esegui reset
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          CONFIRM: ${{ inputs.confirm }}
+          RESET_TARGET_REF: ${{ inputs.target_ref }}
+        run: |
+          chmod +x scripts/reset-repository.sh
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            ./scripts/reset-repository.sh --dry-run
+          else
+            ./scripts/reset-repository.sh
+          fi

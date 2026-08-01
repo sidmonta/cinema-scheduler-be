@@ -1,0 +1,40 @@
+name: Bootstrap issue del progetto
+
+# Trigger solo manuale: dopo il fork, il junior lo lancia una volta dalla tab "Actions" → "Bootstrap issue del progetto" → "Run workflow".
+# Non gira su push/PR: è un'operazione di setup, non fa parte della CI applicativa (vedi ci.yml, issue #17).
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Anteprima senza creare nulla (mostra solo cosa verrebbe fatto)"
+        type: boolean
+        default: false
+
+permissions:
+  # Nient'altro: lo script crea solo milestone, label e issue nel repository corrente.
+  issues: write
+  contents: read
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Esegui bootstrap issue/milestone/label
+        env:
+          # Fornito automaticamente da Actions, limitato a questo repository.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            node scripts/bootstrap-github.mjs --dry-run
+          else
+            node scripts/bootstrap-github.mjs
+          fi
