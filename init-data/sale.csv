@@ -1,0 +1,5 @@
+id,cinema_id,nome,righe,colonne,capienza
+1,1,Sala 1,18,10,180
+2,1,Sala 2,12,10,120
+3,1,Sala 3,9,10,90
+4,1,Sala 4,10,6,60
