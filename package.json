@@ -1,0 +1,46 @@
+{
+  "name": "cinema-scheduler-be",
+  "version": "1.0.0",
+  "description": "Servizio backend per la gestione del palinsesto e delle prenotazioni di Multiplex Aurora, cinema multisala a 4 sale.",
+  "keywords": [],
+  "homepage": "https://github.com/sidmonta/cinema-scheduler-be#readme",
+  "bugs": {
+    "url": "https://github.com/sidmonta/cinema-scheduler-be/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sidmonta/cinema-scheduler-be.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "dist/app.js",
+  "scripts": {
+    "dev": "tsx watch src/app.ts",
+    "build": "tsc",
+    "start": "node dist/app.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "drizzle-kit": "^0.31.10",
+    "drizzle-orm": "^0.45.2",
+    "esbuild": "^0.28.1",
+    "pg": "^8.22.0",
+    "undici-types": "^8.3.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.1.2",
+    "@types/pg": "^8.20.3",
+    "eslint": "^10.8.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.6",
+    "prettier": "^3.9.6",
+    "tsx": "^4.23.5",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.65.0"
+  }
+}
