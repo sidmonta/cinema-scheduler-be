@@ -9,8 +9,8 @@ interface ParsedRequest {
   params?: Record<string, unknown>;
 }
 
-export const validate = (schema: ZodType) => {
-  return async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
+export const validate = <T extends ZodType>(schema: T) => {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const parsed = (await schema.parseAsync({
         body: req.body,
@@ -19,18 +19,11 @@ export const validate = (schema: ZodType) => {
       })) as ParsedRequest;
 
       // 1. Body e Params si possono riassegnare direttamente
-      if (parsed.body) req.body = parsed.body;
-      if (parsed.params) req.params = parsed.params as never;
+      if (parsed.body) res.locals.body = parsed.body;
+      if (parsed.params) res.locals.params = parsed.params;
+      if (parsed.query) res.locals.query = parsed.query; // Salva la query validata in res.locals
 
-      // 2. req.query è un getter: va mutato con Object.assign invece di riassegnarlo!
-      if (parsed.query) {
-        // Svuota l'oggetto query originale preservandone il riferimento
-        Object.keys(req.query).forEach((key) => delete (req.query as Record<string, unknown>)[key]);
-        // Copia le proprietà parsate e trasformate da Zod dentro req.query
-        Object.assign(req.query, parsed.query);
-      }
-
-      next();
+      return next();
     } catch (error) {
       if (error instanceof ZodError) {
         const details = error.issues.map((issue) => ({
@@ -38,9 +31,9 @@ export const validate = (schema: ZodType) => {
           message: issue.message,
         }));
 
-        throw new ValidationError('Errore di validazione dei dati di input', details);
+        return next(new ValidationError('Errore di validazione dei dati di input', details));
       }
-      next(error);
+      return next(error);
     }
   };
 };

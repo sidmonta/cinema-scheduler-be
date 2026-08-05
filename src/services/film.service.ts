@@ -1,4 +1,4 @@
-import { NotFoundError } from "../config/app-error.js";
+import { NotFoundError, ValidationError } from "../config/app-error.js";
 import type { FilmRepository } from "../repositories/film.repository.js";
 import type { CreateFilmInput, FilmPaginationQuery, UpdateFilmExistenceInput, UpdateFilmInput } from "../schemas/film.schema.js";
 
@@ -26,7 +26,7 @@ export class FilmService {
   async updateFilm(id: string, input: UpdateFilmInput) {
     // Verifica prima l'esistenza
     await this.getFilmById(id);
-    return await this.filmRepository.update(id, input);
+    return await this.filmRepository.update(id, input);    
   }
 
   async deleteFilm(id: string, input: UpdateFilmExistenceInput) {

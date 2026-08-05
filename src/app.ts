@@ -3,13 +3,19 @@ import express from 'express';
 import { notFoundHandler } from './middlewares/not-found.middleware.js';
 import { errorHandler } from './middlewares/error.middleware.js';
 import filmRoutes from './routes/film.routes.js';
+import { debug } from 'util';
 
 const PORT = process.env.PORT || 3000;
 
 const app = express();
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+const server = app.listen(PORT);
+
+process.on('SIGTERM', () => {
+  debug('SIGTERM signal received: closing HTTP server');
+  server.close(() => {
+    debug('HTTP server closed');
+  });
 });
 
 app.use(express.json());
@@ -21,5 +27,9 @@ app.use(notFoundHandler);
 
 // 2. Middleware centrale di error handling (DEVE essere l'ultimo app.use)
 app.use(errorHandler);
+
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
 
 export default app;
