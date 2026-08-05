@@ -142,3 +142,9 @@ Vedi [`CONTRIBUTING.md`](./CONTRIBUTING.md) per il dettaglio completo. In sintes
 ## Licenza
 
 Progetto didattico ad uso interno.
+
+## Formato errore
+-400: bad request - formato dati errato o dato obblgatorio mancante
+-404: not found - rotta non trovata o dato non trovato
+-401: unauthorized - ruolo che non consente l'accesso all'API
+-403: forbidden - token JWT richiesto e mancante o scaduto (login necessario)
