@@ -49,7 +49,7 @@ export class FilmRepository {
     async updateExistence(id: string, data: { eliminata: boolean }) {
     const [updatedFilm] = await db
       .update(film)
-      .set({ ...data, aggiornata_il: new Date() })
+      .set({ ...data, aggiornata_il: new Date(), eliminata: true })
       .where(eq(film.id, id))
       .returning();
     return updatedFilm || null;
