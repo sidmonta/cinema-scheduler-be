@@ -16,7 +16,7 @@
   "type": "module",
   "main": "dist/app.js",
   "scripts": {
-    "dev": "tsx watch src/app.ts",
+    "dev": "tsx watch --env-file=.env src/app.ts",
     "build": "tsc",
     "start": "node dist/app.js",
     "lint": "eslint .",
@@ -34,12 +34,16 @@
     "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.45.2",
     "esbuild": "^0.28.1",
+    "express": "^5.2.1",
     "pg": "^8.22.0",
-    "undici-types": "^8.3.0"
+    "postgres": "^3.4.9",
+    "undici-types": "^8.3.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/bcrypt": "^6.0.0",
+    "@types/express": "^5.0.6",
     "@types/node": "^26.1.2",
     "@types/pg": "^8.20.3",
     "eslint": "^10.8.0",
