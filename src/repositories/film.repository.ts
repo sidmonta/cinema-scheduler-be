@@ -1,15 +1,20 @@
 import { eq, count } from "drizzle-orm";
 import { film } from "../db/schema.js";
-import type { CreateFilmInput, UpdateFilmInput } from "../schemas/film.schema.js";
+import type {
+  CreateFilmInput,
+  UpdateFilmInput,
+} from "../schemas/film.schema.js";
 import { db } from "../config/drizzle.config.connection.js";
-
 
 export class FilmRepository {
   async create(data: CreateFilmInput) {
-    const [newFilm] = await db.insert(film).values({
-      ...data,
-      durata_minuti: data.durataMinuti,
-    }).returning();
+    const [newFilm] = await db
+      .insert(film)
+      .values({
+        ...data,
+        durata_minuti: data.durataMinuti,
+      })
+      .returning();
     return newFilm;
   }
 
@@ -22,7 +27,7 @@ export class FilmRepository {
     const offset = (page - 1) * limit;
 
     const data = await db.select().from(film).limit(limit).offset(offset);
-    
+
     const [{ total }] = await db.select({ total: count() }).from(film);
 
     return {
@@ -46,14 +51,14 @@ export class FilmRepository {
     return updatedFilm || null;
   }
 
-    async updateExistence(id: string, data: { eliminata: boolean }) {
+  async updateExistence(id: string, data: { eliminata: boolean }) {
     const [updatedFilm] = await db
       .update(film)
       .set({ ...data, aggiornata_il: new Date(), eliminata: true })
       .where(eq(film.id, id))
       .returning();
     return updatedFilm || null;
-    }
+  }
 
   /*
   async delete(id: string): Promise<boolean> {
