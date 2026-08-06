@@ -1,11 +1,17 @@
 import { FilmRepository } from "../repositories/film.repository.js";
-import { ProiezioneRepository, type CreateProiezioneRepoInput } from "../repositories/proiezione.repository.js";
-import type { CreateProiezioneInput, UpdateProiezioneExistenceInput } from "../schemas/proiezione.schema.js";
+import {
+  ProiezioneRepository,
+  type CreateProiezioneRepoInput,
+} from "../repositories/proiezione.repository.js";
+import type {
+  CreateProiezioneInput,
+  UpdateProiezioneExistenceInput,
+} from "../schemas/proiezione.schema.js";
 
 export class ProiezioneService {
   constructor(
     private readonly proiezioneRepository: ProiezioneRepository,
-    private readonly filmRepository: FilmRepository
+    private readonly filmRepository: FilmRepository,
   ) {}
 
   private static readonly MILLISECONDS_IN_A_MINUTE = 60000;
@@ -21,11 +27,13 @@ export class ProiezioneService {
     const dataInizio = new Date(data.data_ora_inizio);
 
     // 2. Calcola i minuti totali (durata + pulizia)
-    const durataTotaleMinuti = film.durata_minuti + ProiezioneService.TEMPO_PULIZIA_MINUTI;
+    const durataTotaleMinuti =
+      film.durata_minuti + ProiezioneService.TEMPO_PULIZIA_MINUTI;
 
     // 3. Calcola la data e ora di fine
     const dataFine = new Date(
-      dataInizio.getTime() + (durataTotaleMinuti * ProiezioneService.MILLISECONDS_IN_A_MINUTE)
+      dataInizio.getTime() +
+        durataTotaleMinuti * ProiezioneService.MILLISECONDS_IN_A_MINUTE,
     );
 
     // ✅ FIX: Passa sia dataInizio che dataFine (entrambi di tipo Date) al Repository!
@@ -49,30 +57,35 @@ export class ProiezioneService {
     const proiezioneEsistente = await this.findProiezioneById(id); // Verifica prima l'esistenza
     const updateData: Partial<CreateProiezioneRepoInput> = {};
     if (data.sala_id) {
-        updateData.sala_id = data.sala_id;
+      updateData.sala_id = data.sala_id;
     }
     const nuovoFilmId = data.film_id || proiezioneEsistente.film_id;
     const nuovaDataInizioStr = data.data_ora_inizio;
 
     if (nuovaDataInizioStr || data.film_id) {
-        const film = await this.filmRepository.findById(nuovoFilmId);
-        if (!film) {
+      const film = await this.filmRepository.findById(nuovoFilmId);
+      if (!film) {
         throw new Error(`Film con ID ${nuovoFilmId} non trovato.`);
-        }
-        const dataInizio = nuovaDataInizioStr 
-        ? new Date(nuovaDataInizioStr) 
+      }
+      const dataInizio = nuovaDataInizioStr
+        ? new Date(nuovaDataInizioStr)
         : new Date(proiezioneEsistente.data_ora_inizio);
-        const durataTotaleMinuti = film.durata_minuti + ProiezioneService.TEMPO_PULIZIA_MINUTI;
-        const dataFine = new Date(
-        dataInizio.getTime() + (durataTotaleMinuti * ProiezioneService.MILLISECONDS_IN_A_MINUTE)
-        );
-        updateData.data_ora_inizio = dataInizio;
-        updateData.data_ora_fine = dataFine;
+      const durataTotaleMinuti =
+        film.durata_minuti + ProiezioneService.TEMPO_PULIZIA_MINUTI;
+      const dataFine = new Date(
+        dataInizio.getTime() +
+          durataTotaleMinuti * ProiezioneService.MILLISECONDS_IN_A_MINUTE,
+      );
+      updateData.data_ora_inizio = dataInizio;
+      updateData.data_ora_fine = dataFine;
     }
-    return await this.proiezioneRepository.update(id, updateData);  
-    }
+    return await this.proiezioneRepository.update(id, updateData);
+  }
 
-  async updateProiezioneExistence(id: string, input: UpdateProiezioneExistenceInput) {
+  async updateProiezioneExistence(
+    id: string,
+    input: UpdateProiezioneExistenceInput,
+  ) {
     await this.findProiezioneById(id); // Verifica prima l'esistenza
     return await this.proiezioneRepository.updateExistence(id, input);
   }

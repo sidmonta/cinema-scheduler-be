@@ -11,16 +11,17 @@ export interface CreateProiezioneRepoInput {
 }
 
 export class ProiezioneRepository {
-  // ✅ 2. Usa CreateProiezioneRepoInput come parametro di creazione
   async create(data: CreateProiezioneRepoInput) {
     const occupata = await this.isSalaOccupata(
-      data.sala_id, 
+      data.sala_id,
       data.data_ora_inizio,
-      data.data_ora_fine
+      data.data_ora_fine,
     );
-    
+
     if (occupata) {
-      throw new ConflictError("La sala è già occupata in questo intervallo di tempo");
+      throw new ConflictError(
+        "La sala è già occupata in questo intervallo di tempo",
+      );
     }
 
     const [newProiezione] = await db
@@ -37,11 +38,18 @@ export class ProiezioneRepository {
   }
 
   async findById(id: string) {
-    const [foundProiezione] = await db.select().from(proiezione).where(eq(proiezione.id, id));
+    const [foundProiezione] = await db
+      .select()
+      .from(proiezione)
+      .where(eq(proiezione.id, id));
     return foundProiezione || null;
   }
 
-  async isSalaOccupata(sala_id: string, inizio: Date, fine: Date): Promise<boolean> {
+  async isSalaOccupata(
+    sala_id: string,
+    inizio: Date,
+    fine: Date,
+  ): Promise<boolean> {
     const [foundProiezione] = await db
       .select()
       .from(proiezione)
@@ -50,8 +58,8 @@ export class ProiezioneRepository {
           eq(proiezione.sala_id, sala_id),
           eq(proiezione.eliminata, false), // ignora quelle cancellate in soft-delete
           lt(proiezione.data_ora_inizio, fine), // Inizio di quello presente < Fine di quello nuovo
-          gt(proiezione.data_ora_fine, inizio)  // Fine di quello presente > Inizio di quello nuovo
-        )
+          gt(proiezione.data_ora_fine, inizio), // Fine di quello presente > Inizio di quello nuovo
+        ),
       )
       .limit(1);
 
