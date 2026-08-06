@@ -30,6 +30,7 @@
     "db:check": "drizzle-kit check --config=drizzle.config.ts"
   },
   "dependencies": {
+    "@asteasolutions/zod-to-openapi": "^9.1.0",
     "bcrypt": "^6.0.0",
     "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.45.2",
@@ -37,6 +38,7 @@
     "express": "^5.2.1",
     "pg": "^8.22.0",
     "postgres": "^3.4.9",
+    "swagger-ui-express": "^5.0.1",
     "undici-types": "^8.3.0",
     "zod": "^4.4.3"
   },
@@ -46,6 +48,7 @@
     "@types/express": "^5.0.6",
     "@types/node": "^26.1.2",
     "@types/pg": "^8.20.3",
+    "@types/swagger-ui-express": "^4.1.8",
     "eslint": "^10.8.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.6",
