@@ -1,24 +1,44 @@
 import { z } from "zod";
+import { registry } from "../docs/openapi.registry.js";
 
 // --- ENUM ---
-export const ClassificazioneEnum = z.enum(["T", "14+", "18+"]);
+export const ClassificazioneEnum = z.enum(["T", "14+", "18+"]).openapi({
+  description: "Classificazione del film",
+  examples: ["T", "14+", "18+"],
+});
 export type Classificazione = z.infer<typeof ClassificazioneEnum>;
+
+
+export const FilmSchema = registry.register(
+  'Film',
+  z.object({
+    id: z.string().uuid().openapi({ example: '123e4567-e89b-12d3-a456-426614174000' }),
+    titolo: z.string().openapi({ example: 'Inception' }),
+    durataMinuti: z.number().int().positive().openapi({ example: 148 }),
+    genere: z.string().openapi({ example: 'Fantascienza' }),
+    classificazione: ClassificazioneEnum,
+    creata_il: z.date().openapi({ example: '2026-03-30T10:00:00Z' }),
+    aggiornata_il: z.date().openapi({ example: '2026-03-30T10:00:00Z' }),
+    eliminata: z.boolean().openapi({ example: false }),
+  })
+);
 
 // --- 1. PARAMS SCHEMAS (Mattoncino per l'ID) ---
 export const filmIdParamSchema = z.object({
   id: z.string().uuid("ID non valido"),
-});
+}).openapi({ description: "Parametri per l'ID del film" });
 
 // --- 2. BODY SCHEMAS (Mattoncini per il payload) ---
 
 // Schema base per la creazione (tutti i campi obbligatori)
 const baseCreateFilmSchema = z.object({
-  titolo: z.string().min(1, "Il titolo è obbligatorio"),
+  titolo: z.string().min(1, "Il titolo è obbligatorio").openapi({ example: 'Inception' }),
   durataMinuti: z
     .number()
     .int()
-    .positive("La durata deve essere un numero positivo"),
-  genere: z.string().min(1, "Il genere è obbligatorio"),
+    .positive("La durata deve essere un numero positivo")
+    .openapi({ example: 148 }),
+  genere: z.string().min(1, "Il genere è obbligatorio").openapi({ example: 'Fantascienza' }),
   classificazione: ClassificazioneEnum,
 });
 

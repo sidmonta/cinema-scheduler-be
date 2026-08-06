@@ -1,20 +1,33 @@
 import z from "zod";
+import { registry } from "../docs/openapi.registry.js";
+
+export const SaleSchema = registry.register(
+  'Sale',
+  z.object({
+    id: z.string().uuid().openapi({ example: 'abc34567-e89b-12d3-a456-426614174999' }),
+    cinemaId: z.string().uuid().openapi({ example: '888e4567-e89b-12d3-a456-426614174111' }),
+    nome: z.string().openapi({ example: 'Sala IMAX' }),
+    righe: z.number().int().positive().openapi({ example: 10 }),
+    colonne: z.number().int().positive().openapi({ example: 15 }),
+    capienza: z.number().int().positive().openapi({ example: 150 }),
+  })
+);
 
 export const saleIdParamSchema = z.object({
-  id: z.string().uuid("ID non valido"),
+  id: z.string().uuid("ID non valido").openapi({ example: 'abc34567-e89b-12d3-a456-426614174999' }),
 });
 
 const baseCreateSaleSchema = z.object({
-  cinema_id: z.string().uuid("ID del cinema non valido"),
-  nome: z.string().min(1, "Il nome è obbligatorio"),
+  cinema_id: z.string().uuid("ID del cinema non valido" ).openapi({ example: '888e4567-e89b-12d3-a456-426614174111' }),
+  nome: z.string().min(1, "Il nome è obbligatorio").openapi({ example: 'Sala IMAX' }),
   righe: z
     .number()
     .int()
-    .positive("Il numero di righe deve essere un numero positivo"),
+    .positive("Il numero di righe deve essere un numero positivo").openapi({ example: 10 }),
   colonne: z
     .number()
     .int()
-    .positive("Il numero di colonne deve essere un numero positivo"),
+    .positive("Il numero di colonne deve essere un numero positivo").openapi({ example: 15 }),
 });
 
 export const createSaleBodySchema = baseCreateSaleSchema.refine(
