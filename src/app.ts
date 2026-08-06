@@ -4,7 +4,7 @@ import { notFoundHandler } from "./middlewares/not-found.middleware.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 import filmRoutes from "./routes/film.routes.js";
 import { debug } from "util";
-import './docs/routes.doc.js';
+import "./docs/routes.doc.js";
 import { generateOpenAPIDocument } from "./docs/openapi.registry.js";
 import swaggerUi from "swagger-ui-express";
 import saleRoutes from "./routes/sale.routes.js";
@@ -18,8 +18,8 @@ const server = app.listen(PORT);
 
 const openApiDocument = generateOpenAPIDocument();
 
-app.get('/openapi.json', (_req, res) => {
-  res.setHeader('Content-Type', 'application/json');
+app.get("/openapi.json", (_req, res) => {
+  res.setHeader("Content-Type", "application/json");
   res.send(openApiDocument);
 });
 
@@ -32,7 +32,7 @@ process.on("SIGTERM", () => {
 
 app.use(express.json());
 
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(openApiDocument));
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(openApiDocument));
 app.use("/api/v1/films", filmRoutes);
 app.use("/api/v1/sales", saleRoutes);
 app.use("/api/v1/proiezioni", proiezioneRoutes);
