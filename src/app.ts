@@ -4,10 +4,11 @@ import { notFoundHandler } from "./middlewares/not-found.middleware.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 import filmRoutes from "./routes/film.routes.js";
 import { debug } from "util";
-import saleRoutes from "./routes/sale.routes.js";
 import './docs/routes.doc.js';
 import { generateOpenAPIDocument } from "./docs/openapi.registry.js";
 import swaggerUi from "swagger-ui-express";
+import saleRoutes from "./routes/sale.routes.js";
+import proiezioneRoutes from "./routes/proiezione.routes.js";
 
 const PORT = process.env.PORT || 3000;
 
@@ -34,6 +35,7 @@ app.use(express.json());
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(openApiDocument));
 app.use("/api/v1/films", filmRoutes);
 app.use("/api/v1/sales", saleRoutes);
+app.use("/api/v1/proiezioni", proiezioneRoutes);
 
 // 1. Handler per le rotte non trovate (404)
 app.use(notFoundHandler);

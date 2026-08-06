@@ -49,3 +49,10 @@ export class UnauthorizedError extends AppError {
     super(message, 401, "UNAUTHORIZED", details);
   }
 }
+
+// 409 Conflict Error
+export class ConflictError extends AppError {
+  constructor(message: string = "Conflitto di dati", details?: unknown) {
+    super(message, 409, "CONFLICT", details);
+  }
+}
