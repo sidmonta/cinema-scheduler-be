@@ -2,7 +2,6 @@ import type { NextFunction, Request, Response } from "express";
 import { ZodType, ZodError } from "zod";
 import { ValidationError } from "../config/app-error.js";
 
-
 interface ParsedRequest {
   body?: Record<string, unknown>;
   query?: Record<string, unknown>;
@@ -10,7 +9,11 @@ interface ParsedRequest {
 }
 
 export const validate = <T extends ZodType>(schema: T) => {
-  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  return async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const parsed = (await schema.parseAsync({
         body: req.body,
@@ -27,11 +30,16 @@ export const validate = <T extends ZodType>(schema: T) => {
     } catch (error) {
       if (error instanceof ZodError) {
         const details = error.issues.map((issue) => ({
-          field: issue.path.join('.').replace(/^(body|query|params)\./, ''),
+          field: issue.path.join(".").replace(/^(body|query|params)\./, ""),
           message: issue.message,
         }));
 
-        return next(new ValidationError('Errore di validazione dei dati di input', details));
+        return next(
+          new ValidationError(
+            "Errore di validazione dei dati di input",
+            details,
+          ),
+        );
       }
       return next(error);
     }

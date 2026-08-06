@@ -6,7 +6,7 @@ export const errorHandler: ErrorRequestHandler = (
   err: Error,
   _req: Request,
   res: Response,
-  _next: NextFunction
+  _next: NextFunction,
 ): void => {
   if (err instanceof AppError) {
     res.status(err.statusCode).json({
@@ -19,12 +19,12 @@ export const errorHandler: ErrorRequestHandler = (
     return;
   }
 
-  console.error(' Errore Non Gestito:', err);
+  console.error(" Errore Non Gestito:", err);
 
   res.status(500).json({
     error: {
-      code: 'INTERNAL_SERVER_ERROR',
-      message: 'Si è verificato un errore interno del server',
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Si è verificato un errore interno del server",
     },
   });
 };
