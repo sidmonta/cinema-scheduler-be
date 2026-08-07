@@ -1,6 +1,6 @@
 import { db } from "../config/drizzle.config.connection.js";
-import { eq, count, and, gt, lt } from "drizzle-orm";
-import { proiezione } from "../db/schema.js";
+import { eq, count, and, gt, lt, gte, lte } from "drizzle-orm";
+import { proiezione, film, sala } from "../db/schema.js";
 import { ConflictError } from "../config/app-error.js";
 import { err, ok } from "../config/result.type.js";
 
@@ -43,6 +43,40 @@ export class ProiezioneRepository {
       .from(proiezione)
       .where(eq(proiezione.id, id));
     return foundProiezione || null;
+  }
+
+  async findByData(data: string){
+    const dayStart = new Date(`${data}T00:00:00.000Z`);
+    const dayEnd = new Date(`${data}T23:59:59.999Z`);
+
+    return ok(
+      await db.select({
+        proiezioneId: proiezione.id,
+        dataOraInizio: proiezione.data_ora_inizio,
+        dataOraFine: proiezione.data_ora_fine,
+        film:{
+          id: film.id,
+          titolo: film.titolo,
+          durata: film.durata_minuti,
+          genere: film.genere,
+          classificazione: film.classificazione
+        },
+        sala:{
+          id: sala.id,
+          nome: sala.nome
+        }
+      })
+      .from(proiezione)
+      .innerJoin(film, eq(proiezione.film_id, film.id))
+      .innerJoin(sala, eq(proiezione.sala_id, sala.id))
+      .where(
+        and(
+          eq(proiezione.eliminata, false),
+          gte(proiezione.data_ora_inizio, dayStart),
+          lte(proiezione.data_ora_inizio, dayEnd)
+        )
+      )
+    );
   }
 
   async isSalaOccupata(

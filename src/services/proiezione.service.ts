@@ -9,6 +9,8 @@ import type {
   CreateProiezioneInput,
   UpdateProiezioneExistenceInput,
 } from "../schemas/proiezione.schema.js";
+import { buildPalinsestoCacheKey, invalidatePalinsestoCache, PALINSESTO_TTL_SECONDS } from "../utils/cache.utils.js";
+import { redisClient } from "../config/redis.config.js";
 
 export class ProiezioneService {
   constructor(
@@ -43,6 +45,10 @@ export class ProiezioneService {
       data_ora_fine: dataFine,
     });
 
+    // ✅ Formattazione pulita YYYY-MM-DD per invalidare la cache
+    const dataFormatted = dataInizio.toISOString().split('T')[0];
+    await invalidatePalinsestoCache(dataFormatted);
+
     return ok(nuovaProiezione);
   }
 
@@ -60,13 +66,11 @@ export class ProiezioneService {
     // 1. Verifichiamo l'esistenza della proiezione
     const proiezioneResult = await this.findProiezioneById(id);
     if (!proiezioneResult.success) {
-      return ok(proiezioneResult); // Restituisce direttamente il Result.err del NotFound
+      return proiezioneResult; // ✅ FIX: Ritorna direttamente l'errore senza incapsularlo in ok()
     }
-
-    // Ora TypeScript sa che proiezioneResult.data esiste (Narrowing)
     const proiezioneEsistente = proiezioneResult.data;
-
     const updateData: Partial<CreateProiezioneRepoInput> = {};
+
     if (data.sala_id) {
       updateData.sala_id = data.sala_id;
     }
@@ -100,6 +104,11 @@ export class ProiezioneService {
     }
 
     const proiezioneAggiornata = await this.proiezioneRepository.update(id, updateData);
+
+    // ✅ FIX: Invalida la cache per la data della proiezione
+    const dataFormatted = new Date(proiezioneEsistente.data_ora_inizio).toISOString().split('T')[0];
+    await invalidatePalinsestoCache(dataFormatted);
+
     return ok(proiezioneAggiornata);
   }
 
@@ -107,18 +116,54 @@ export class ProiezioneService {
     id: string,
     input: UpdateProiezioneExistenceInput,
   ) {
-    // 1. Verifichiamo l'esistenza della proiezione
     const proiezioneResult = await this.findProiezioneById(id);
     if (!proiezioneResult.success) {
-      return proiezioneResult; // Propaga l'errore se non trovata
+      return proiezioneResult;
     }
 
     const updated = await this.proiezioneRepository.updateExistence(id, input);
+
+    // ✅ FIX: Invalida la cache in caso di eliminazione o ripristino
+    const dataFormatted = new Date(proiezioneResult.data.data_ora_inizio).toISOString().split('T')[0];
+    await invalidatePalinsestoCache(dataFormatted);
+
     return ok(updated);
   }
 
   async findAll(page: number, limit: number) {
     const result = await this.proiezioneRepository.findAll(page, limit);
     return ok(result);
+  }
+
+  // ✅ FIX COMPLETO: Accetta stringa "YYYY-MM-DD" e previene errori di data
+  async getPalinsestoByDate(dataStr: string) {
+    // Normalizziamo la stringa prendendo solo la parte YYYY-MM-DD
+    const dateFormatted = dataStr.includes('T') ? dataStr.split('T')[0] : dataStr;
+    const cacheKey = buildPalinsestoCacheKey(dateFormatted);
+
+    // 1. Lettura da Redis Cache
+    const cachedData = await redisClient.get(cacheKey);
+    if (cachedData) {
+      return ok({
+        source: 'cache',
+        proiezioni: JSON.parse(cachedData),
+      });
+    }
+
+    // 2. Lettura da Database (passiamo la stringa formattata YYYY-MM-DD al Repository)
+    const proiezioni = await this.proiezioneRepository.findByData(dateFormatted);
+
+    // 3. Scrittura in Cache
+    await redisClient.set(
+      cacheKey,
+      JSON.stringify(proiezioni),
+      'EX',
+      PALINSESTO_TTL_SECONDS
+    );
+
+    return ok({
+      source: 'db',
+      proiezioni,
+    });
   }
 }

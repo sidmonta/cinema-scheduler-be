@@ -6,6 +6,8 @@ import { FilmRepository } from "../repositories/film.repository.js";
 import { validate } from "../middlewares/validate.middleware.js";
 import {
   createProiezioneSchema,
+  getPalinsestoSchema,
+  palinsestoParamSchema,
   proiezioneIdParamSchema,
   proiezionePaginationQuerySchema,
   updateProiezioneSchema,
@@ -41,6 +43,11 @@ router.delete(
   "/:id",
   validate(proiezioneIdParamSchema),
   proiezioneController.delete,
+);
+router.get(
+  "/palinsesto/:data",
+  validate(getPalinsestoSchema), // Valida req.query.data
+  proiezioneController.getPalinsesto
 );
 
 export default router;
