@@ -45,24 +45,31 @@ export class ProiezioneController {
     // ✅ 1. Sincronizzati con come leggi gli altri campi (usa res.locals)
     // Se la rotta usa query parameter ?data=... leggi da res.locals.query.data
     // Se usa path parameter /:data leggi da res.locals.params.data
-    const dataStr: string = res.locals.query?.data || res.locals.params?.data || (req.query.data as string) || (req.params.data as string);
+    const dataStr: string =
+      res.locals.query?.data ||
+      res.locals.params?.data ||
+      (req.query.data as string) ||
+      (req.params.data as string);
 
     // ✅ 2. Passa la STRINGA ("2026-08-07") al Service invece di convertirla qui a Date
     const result = await this.proiezioneService.getPalinsestoByDate(dataStr);
 
     if (!result.success) {
       res.status(result.error.statusCode).json({
-        status: 'error',
+        status: "error",
         message: result.error.message,
       });
       return;
     }
 
     // Header per la cache
-    res.setHeader('X-Cache-Status', result.data.source === 'cache' ? 'HIT' : 'MISS');
+    res.setHeader(
+      "X-Cache-Status",
+      result.data.source === "cache" ? "HIT" : "MISS",
+    );
 
     res.status(200).json({
-      status: 'success',
+      status: "success",
       data: result.data.proiezioni,
     });
   };

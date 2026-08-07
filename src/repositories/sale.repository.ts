@@ -62,7 +62,7 @@ export class SaleRepository {
   }
 
   async updateExistence(id: string, data: { eliminata: boolean }) {
-    const [updatedSale] = await db
+    await db
       .update(sala)
       .set({ ...data, aggiornata_il: new Date(), eliminata: true })
       .where(eq(sala.id, id))
