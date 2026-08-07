@@ -5,6 +5,7 @@ import type {
   CreateSaleInput,
   UpdateSaleInput,
 } from "../schemas/sale.schema.js";
+import { ok } from "../config/result.type.js";
 
 export class SaleRepository {
   async create(data: CreateSaleInput) {
@@ -18,12 +19,17 @@ export class SaleRepository {
         cinema_id: data.cinema_id,
       })
       .returning();
-    return newSale;
+    return ok(newSale);
   }
 
   async findById(id: string) {
     const [foundSale] = await db.select().from(sala).where(eq(sala.id, id));
-    return foundSale || null;
+    return ok(foundSale);
+  }
+
+  async findByName(name: string) {
+    const [foundSale] = await db.select().from(sala).where(eq(sala.nome, name));
+    return ok(foundSale);
   }
 
   async findAll(page: number, limit: number) {
@@ -33,7 +39,7 @@ export class SaleRepository {
 
     const [{ total }] = await db.select({ total: count() }).from(sala);
 
-    return {
+    const find = {
       data,
       meta: {
         page,
@@ -42,6 +48,7 @@ export class SaleRepository {
         totalPages: Math.ceil(Number(total) / limit),
       },
     };
+    return ok(find);
   }
 
   async update(id: string, data: UpdateSaleInput) {
@@ -51,7 +58,7 @@ export class SaleRepository {
       .where(eq(sala.id, id))
       .returning();
 
-    return updatedSale || null;
+    return ok(updatedSale);
   }
 
   async updateExistence(id: string, data: { eliminata: boolean }) {
@@ -60,6 +67,6 @@ export class SaleRepository {
       .set({ ...data, aggiornata_il: new Date(), eliminata: true })
       .where(eq(sala.id, id))
       .returning();
-    return updatedSale || null;
+    return ok(data.eliminata);
   }
 }

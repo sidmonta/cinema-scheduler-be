@@ -1,4 +1,5 @@
-import { NotFoundError } from "../config/app-error.js";
+import { ConflictError, NotFoundError } from "../config/app-error.js";
+import { err, ok } from "../config/result.type.js";
 import type { SaleRepository } from "../repositories/sale.repository.js";
 import type {
   CreateSaleInput,
@@ -11,31 +12,53 @@ export class SaleService {
   constructor(private readonly saleRepository: SaleRepository) {}
 
   async createSale(input: CreateSaleInput) {
-    return await this.saleRepository.create(input);
+    if(!await this.saleRepository.findByName(input.nome)) {
+      return err(
+        new ConflictError("Sala con nome: '${input.nome} già esistente")
+      )
+    }
+    return ok(await this.saleRepository.create(input));
+  }
+
+  async getSaleByName(name: string) {
+    const sale = await this.saleRepository.findByName(name);
+    if(!sale) {
+      return err(
+        new NotFoundError("Sala con nome: '${name}' non trovata")
+      )
+    }
+    return ok(sale);
   }
 
   async getSaleById(id: string) {
     const sale = await this.saleRepository.findById(id);
     if (!sale) {
-      throw new NotFoundError(`Sale con ID '${id}' non trovato`);
+      return err(
+         new NotFoundError(`Sale con ID '${id}' non trovato`)
+      )
     }
-    return sale;
+    return ok(sale);
   }
 
   async getAllSales(query: SalePaginationQuery) {
     const { page, limit } = query;
-    return await this.saleRepository.findAll(page, limit);
+    return ok(await this.saleRepository.findAll(page, limit));
   }
 
   async updateSale(id: string, input: UpdateSaleInput) {
     // Verifica prima l'esistenza
-    await this.getSaleById(id);
-    return await this.saleRepository.update(id, input);
+    const sale =  await this.getSaleById(id);
+    if(!sale){
+      return err(
+        new NotFoundError("Sala non trovata")
+      )
+    }
+    return ok(await this.saleRepository.update(id, input));
   }
 
   async deleteSale(id: string, input: UpdateSaleExistenceInput) {
     // Verifica prima l'esistenza
     await this.getSaleById(id);
-    await this.saleRepository.updateExistence(id, input);
+    return ok(await this.saleRepository.updateExistence(id, input));
   }
 }
