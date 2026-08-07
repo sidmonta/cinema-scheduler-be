@@ -1,4 +1,4 @@
-import { ok, err } from "../config/result.type.js"; 
+import { ok, err } from "../config/result.type.js";
 import { NotFoundError } from "../config/app-error.js";
 import { FilmRepository } from "../repositories/film.repository.js";
 import {
@@ -9,7 +9,11 @@ import type {
   CreateProiezioneInput,
   UpdateProiezioneExistenceInput,
 } from "../schemas/proiezione.schema.js";
-import { buildPalinsestoCacheKey, invalidatePalinsestoCache, PALINSESTO_TTL_SECONDS } from "../utils/cache.utils.js";
+import {
+  buildPalinsestoCacheKey,
+  invalidatePalinsestoCache,
+  PALINSESTO_TTL_SECONDS,
+} from "../utils/cache.utils.js";
 import { redisClient } from "../config/redis.config.js";
 
 export class ProiezioneService {
@@ -24,9 +28,7 @@ export class ProiezioneService {
   async createProiezione(data: CreateProiezioneInput) {
     const film = await this.filmRepository.findById(data.film_id);
     if (!film) {
-      return err(
-        new NotFoundError(`Film con ID ${data.film_id} non trovato.`)
-      );
+      return err(new NotFoundError(`Film con ID ${data.film_id} non trovato.`));
     }
 
     const dataInizio = new Date(data.data_ora_inizio);
@@ -46,7 +48,7 @@ export class ProiezioneService {
     });
 
     // ✅ Formattazione pulita YYYY-MM-DD per invalidare la cache
-    const dataFormatted = dataInizio.toISOString().split('T')[0];
+    const dataFormatted = dataInizio.toISOString().split("T")[0];
     await invalidatePalinsestoCache(dataFormatted);
 
     return ok(nuovaProiezione);
@@ -55,9 +57,7 @@ export class ProiezioneService {
   async findProiezioneById(id: string) {
     const proiezione = await this.proiezioneRepository.findById(id);
     if (!proiezione) {
-      return err(
-        new NotFoundError(`Proiezione con ID '${id}' non trovata`)
-      );
+      return err(new NotFoundError(`Proiezione con ID '${id}' non trovata`));
     }
     return ok(proiezione);
   }
@@ -82,7 +82,7 @@ export class ProiezioneService {
       const film = await this.filmRepository.findById(nuovoFilmId);
       if (!film) {
         return err(
-          new NotFoundError(`Film con ID ${nuovoFilmId} non trovato.`)
+          new NotFoundError(`Film con ID ${nuovoFilmId} non trovato.`),
         );
       }
 
@@ -103,10 +103,15 @@ export class ProiezioneService {
       updateData.film_id = nuovoFilmId;
     }
 
-    const proiezioneAggiornata = await this.proiezioneRepository.update(id, updateData);
+    const proiezioneAggiornata = await this.proiezioneRepository.update(
+      id,
+      updateData,
+    );
 
     // ✅ FIX: Invalida la cache per la data della proiezione
-    const dataFormatted = new Date(proiezioneEsistente.data_ora_inizio).toISOString().split('T')[0];
+    const dataFormatted = new Date(proiezioneEsistente.data_ora_inizio)
+      .toISOString()
+      .split("T")[0];
     await invalidatePalinsestoCache(dataFormatted);
 
     return ok(proiezioneAggiornata);
@@ -124,7 +129,9 @@ export class ProiezioneService {
     const updated = await this.proiezioneRepository.updateExistence(id, input);
 
     // ✅ FIX: Invalida la cache in caso di eliminazione o ripristino
-    const dataFormatted = new Date(proiezioneResult.data.data_ora_inizio).toISOString().split('T')[0];
+    const dataFormatted = new Date(proiezioneResult.data.data_ora_inizio)
+      .toISOString()
+      .split("T")[0];
     await invalidatePalinsestoCache(dataFormatted);
 
     return ok(updated);
@@ -138,31 +145,34 @@ export class ProiezioneService {
   // ✅ FIX COMPLETO: Accetta stringa "YYYY-MM-DD" e previene errori di data
   async getPalinsestoByDate(dataStr: string) {
     // Normalizziamo la stringa prendendo solo la parte YYYY-MM-DD
-    const dateFormatted = dataStr.includes('T') ? dataStr.split('T')[0] : dataStr;
+    const dateFormatted = dataStr.includes("T")
+      ? dataStr.split("T")[0]
+      : dataStr;
     const cacheKey = buildPalinsestoCacheKey(dateFormatted);
 
     // 1. Lettura da Redis Cache
     const cachedData = await redisClient.get(cacheKey);
     if (cachedData) {
       return ok({
-        source: 'cache',
+        source: "cache",
         proiezioni: JSON.parse(cachedData),
       });
     }
 
     // 2. Lettura da Database (passiamo la stringa formattata YYYY-MM-DD al Repository)
-    const proiezioni = await this.proiezioneRepository.findByData(dateFormatted);
+    const proiezioni =
+      await this.proiezioneRepository.findByData(dateFormatted);
 
     // 3. Scrittura in Cache
     await redisClient.set(
       cacheKey,
       JSON.stringify(proiezioni),
-      'EX',
-      PALINSESTO_TTL_SECONDS
+      "EX",
+      PALINSESTO_TTL_SECONDS,
     );
 
     return ok({
-      source: 'db',
+      source: "db",
       proiezioni,
     });
   }

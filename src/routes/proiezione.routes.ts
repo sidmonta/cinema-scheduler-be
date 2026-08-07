@@ -7,7 +7,6 @@ import { validate } from "../middlewares/validate.middleware.js";
 import {
   createProiezioneSchema,
   getPalinsestoSchema,
-  palinsestoParamSchema,
   proiezioneIdParamSchema,
   proiezionePaginationQuerySchema,
   updateProiezioneSchema,
@@ -47,7 +46,7 @@ router.delete(
 router.get(
   "/palinsesto/:data",
   validate(getPalinsestoSchema), // Valida req.query.data
-  proiezioneController.getPalinsesto
+  proiezioneController.getPalinsesto,
 );
 
 export default router;
