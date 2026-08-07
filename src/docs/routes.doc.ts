@@ -17,6 +17,7 @@ import {
   proiezionePaginationQuerySchema,
   proiezioneIdParamSchema,
   updateProiezioneSchema,
+  palinsestoParamSchema,
 } from "../schemas/proiezione.schema.js";
 
 // --- ROTTE FILM ---
@@ -350,5 +351,19 @@ registry.registerPath({
   responses: {
     204: { description: "Proiezione eliminata con successo" },
     404: { description: "Proiezione non trovata" },
+  },
+});
+
+// 6. GET /palinsesto
+registry.registerPath({
+  method: "get",
+  path: "/proiezioni/palinsesto/{data}",
+  tags: ["Palinsesto"],
+  summary: "Recupera il palinsesto per una certa data",
+  request: {
+    params: palinsestoParamSchema,
+  },
+  responses: {
+    404: { description: "Palinsesto non trovato" },
   },
 });
