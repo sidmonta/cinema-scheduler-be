@@ -2,6 +2,7 @@ import { db } from "../config/drizzle.config.connection.js";
 import { eq, count, and, gt, lt } from "drizzle-orm";
 import { proiezione } from "../db/schema.js";
 import { ConflictError } from "../config/app-error.js";
+import { err, ok } from "../config/result.type.js";
 
 export interface CreateProiezioneRepoInput {
   sala_id: string;
@@ -19,9 +20,9 @@ export class ProiezioneRepository {
     );
 
     if (occupata) {
-      throw new ConflictError(
-        "La sala è già occupata in questo intervallo di tempo",
-      );
+      return err(
+        new ConflictError("La sala è già occupata in questo intervallo di tempo")
+      )
     }
 
     const [newProiezione] = await db
@@ -33,8 +34,7 @@ export class ProiezioneRepository {
         data_ora_fine: data.data_ora_fine,
       })
       .returning();
-
-    return newProiezione;
+    return ok(newProiezione);
   }
 
   async findById(id: string) {
@@ -62,7 +62,6 @@ export class ProiezioneRepository {
         ),
       )
       .limit(1);
-
     return !!foundProiezione;
   }
 

@@ -1,3 +1,5 @@
+import { ok, err } from "../config/result.type.js"; 
+import { NotFoundError } from "../config/app-error.js";
 import { FilmRepository } from "../repositories/film.repository.js";
 import {
   ProiezioneRepository,
@@ -20,77 +22,103 @@ export class ProiezioneService {
   async createProiezione(data: CreateProiezioneInput) {
     const film = await this.filmRepository.findById(data.film_id);
     if (!film) {
-      throw new Error(`Film con ID ${data.film_id} non trovato.`);
+      return err(
+        new NotFoundError(`Film con ID ${data.film_id} non trovato.`)
+      );
     }
 
-    // 1. Converti la stringa in un oggetto Date
     const dataInizio = new Date(data.data_ora_inizio);
-
-    // 2. Calcola i minuti totali (durata + pulizia)
     const durataTotaleMinuti =
       film.durata_minuti + ProiezioneService.TEMPO_PULIZIA_MINUTI;
 
-    // 3. Calcola la data e ora di fine
     const dataFine = new Date(
       dataInizio.getTime() +
         durataTotaleMinuti * ProiezioneService.MILLISECONDS_IN_A_MINUTE,
     );
 
-    // ✅ FIX: Passa sia dataInizio che dataFine (entrambi di tipo Date) al Repository!
-    return await this.proiezioneRepository.create({
+    const nuovaProiezione = await this.proiezioneRepository.create({
       sala_id: data.sala_id,
       film_id: data.film_id,
       data_ora_inizio: dataInizio,
       data_ora_fine: dataFine,
     });
+
+    return ok(nuovaProiezione);
   }
 
   async findProiezioneById(id: string) {
     const proiezione = await this.proiezioneRepository.findById(id);
     if (!proiezione) {
-      throw new Error(`Proiezione con ID '${id}' non trovata`);
+      return err(
+        new NotFoundError(`Proiezione con ID '${id}' non trovata`)
+      );
     }
-    return proiezione;
+    return ok(proiezione);
   }
 
   async updateProiezione(id: string, data: Partial<CreateProiezioneInput>) {
-    const proiezioneEsistente = await this.findProiezioneById(id); // Verifica prima l'esistenza
+    // 1. Verifichiamo l'esistenza della proiezione
+    const proiezioneResult = await this.findProiezioneById(id);
+    if (!proiezioneResult.success) {
+      return ok(proiezioneResult); // Restituisce direttamente il Result.err del NotFound
+    }
+
+    // Ora TypeScript sa che proiezioneResult.data esiste (Narrowing)
+    const proiezioneEsistente = proiezioneResult.data;
+
     const updateData: Partial<CreateProiezioneRepoInput> = {};
     if (data.sala_id) {
       updateData.sala_id = data.sala_id;
     }
+
     const nuovoFilmId = data.film_id || proiezioneEsistente.film_id;
     const nuovaDataInizioStr = data.data_ora_inizio;
 
     if (nuovaDataInizioStr || data.film_id) {
       const film = await this.filmRepository.findById(nuovoFilmId);
       if (!film) {
-        throw new Error(`Film con ID ${nuovoFilmId} non trovato.`);
+        return err(
+          new NotFoundError(`Film con ID ${nuovoFilmId} non trovato.`)
+        );
       }
+
       const dataInizio = nuovaDataInizioStr
         ? new Date(nuovaDataInizioStr)
         : new Date(proiezioneEsistente.data_ora_inizio);
+
       const durataTotaleMinuti =
         film.durata_minuti + ProiezioneService.TEMPO_PULIZIA_MINUTI;
+
       const dataFine = new Date(
         dataInizio.getTime() +
           durataTotaleMinuti * ProiezioneService.MILLISECONDS_IN_A_MINUTE,
       );
+
       updateData.data_ora_inizio = dataInizio;
       updateData.data_ora_fine = dataFine;
+      updateData.film_id = nuovoFilmId;
     }
-    return await this.proiezioneRepository.update(id, updateData);
+
+    const proiezioneAggiornata = await this.proiezioneRepository.update(id, updateData);
+    return ok(proiezioneAggiornata);
   }
 
   async updateProiezioneExistence(
     id: string,
     input: UpdateProiezioneExistenceInput,
   ) {
-    await this.findProiezioneById(id); // Verifica prima l'esistenza
-    return await this.proiezioneRepository.updateExistence(id, input);
+    // 1. Verifichiamo l'esistenza della proiezione
+    const proiezioneResult = await this.findProiezioneById(id);
+    if (!proiezioneResult.success) {
+      return proiezioneResult; // Propaga l'errore se non trovata
+    }
+
+    const updated = await this.proiezioneRepository.updateExistence(id, input);
+    return ok(updated);
   }
 
   async findAll(page: number, limit: number) {
-    return await this.proiezioneRepository.findAll(page, limit);
+    const result = await this.proiezioneRepository.findAll(page, limit);
+    return ok(result);
   }
 }
