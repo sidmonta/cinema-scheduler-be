@@ -30,17 +30,6 @@ export const palinsestoParamSchema = z.object({
     .openapi({ example: "2026-08-07" }),
 });
 
-// Query: Palinsesto per Data (?data=YYYY-MM-DD)
-export const palinsestoParamSchema = z.object({
-  data: z
-    .string({ message: "Il parametro 'data' è obbligatorio" })
-    .regex(
-      /^\d{4}-\d{2}-\d{2}$/,
-      "Il formato della data deve essere YYYY-MM-DD (es. 2026-08-07)",
-    )
-    .openapi({ example: "2026-08-07" }),
-});
-
 // Query: Paginazione
 export const proiezionePaginationQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
