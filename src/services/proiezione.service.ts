@@ -87,6 +87,7 @@ export class ProiezioneService {
     if (!proiezioneResult.success) {
       return proiezioneResult;
     }
+
     const proiezioneEsistente = proiezioneResult.data;
     const updateData: Partial<CreateProiezioneRepoInput> = {};
 
@@ -98,6 +99,10 @@ export class ProiezioneService {
     let dataFineTarget = new Date(proiezioneEsistente.data_ora_fine);
 
     if (data.sala_id) {
+      const sala = await this.salaRepository.findById(data.sala_id);
+      if (!sala) {
+        return err(new NotFoundError(`Sala con ID: ${data.sala_id} non trovata`));
+      }
       updateData.sala_id = data.sala_id;
     }
 

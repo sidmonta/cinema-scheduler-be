@@ -1,5 +1,5 @@
 import { db } from '../config/drizzle.config.connection.js';
-import { eq, count, and, gt, lt, gte, lte } from 'drizzle-orm';
+import { eq, count, and, gt, lt, gte, lte, ne } from 'drizzle-orm';
 import { proiezione, film, sala } from '../db/schema.js';
 
 export interface CreateProiezioneRepoInput {
@@ -77,7 +77,7 @@ export class ProiezioneRepository {
     ];
 
     if (excludeProiezioneId) {
-      conditions.push(eq(proiezione.id, excludeProiezioneId));
+      conditions.push(ne(proiezione.id, excludeProiezioneId));
     }
 
     const [found] = await db
