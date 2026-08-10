@@ -71,6 +71,11 @@ export const proiezione = pgTable("proiezione", {
   eliminata: boolean("eliminata").notNull().default(false),
 });
 
+export const ruoloEnum = pgEnum("ruolo", [
+  "ADMIN",
+  "USER"
+])
+
 // 6. Utente
 export const utente = pgTable("utente", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -78,7 +83,7 @@ export const utente = pgTable("utente", {
   password: varchar("password", { length: 255 }).notNull(),
   nome: varchar("nome", { length: 255 }).notNull(),
   cognome: varchar("cognome", { length: 255 }).notNull(),
-  ruolo: varchar("ruolo", { length: 255 }).notNull(),
+  ruolo: ruoloEnum("ruolo").default("USER").notNull(),
   creata_il: timestamp("creata_il").notNull().defaultNow(),
   aggiornata_il: timestamp("aggiornata_il").notNull().defaultNow(),
   eliminata: boolean("eliminata").notNull().default(false),
