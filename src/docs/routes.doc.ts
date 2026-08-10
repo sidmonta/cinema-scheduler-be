@@ -19,6 +19,7 @@ import {
   updateProiezioneSchema,
   palinsestoParamSchema,
 } from "../schemas/proiezione.schema.js";
+import { loginBodySchema, loginSchema, registerBodySchema, registerSchema } from "../schemas/auth.schema.js";
 
 // --- ROTTE FILM ---
 // 1. GET /films
@@ -365,5 +366,43 @@ registry.registerPath({
   },
   responses: {
     404: { description: "Palinsesto non trovato" },
+  },
+});
+
+// -- ROTTE AUTENTICAZIONE --
+// 1. POST /login
+registry.registerPath({
+  method: "post",
+  path: "/auth/login",
+  tags: ["Autenticazione"],
+  summary: "Effettua login con credenziali",
+  request: {
+    body: {
+      content: {
+        "application/json": { schema: loginBodySchema }
+      }
+    }
+  },
+  responses: {
+    401: { description: "Credenziali non valide" },
+    404: { description: "Utente non trovato" },
+  },
+});
+
+// 2. POST /register
+registry.registerPath({
+  method: "post",
+  path: "/auth/register",
+  tags: ["Autenticazione"],
+  summary: "Registra un nuovo utente con password hashata",
+  request: {
+    body: {
+      content: {
+        "application/json": { schema: registerBodySchema }
+      }
+    }
+  },
+  responses: {
+    409: { description: "Utente già registrato" }
   },
 });

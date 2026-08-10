@@ -27,5 +27,17 @@ export function generateOpenAPIDocument() {
         description: "Server di Sviluppo Locale",
       },
     ],
+    security: [{ [bearerAuth.name]: [] }],
   });
 }
+
+export const bearerAuth = registry.registerComponent(
+  'securitySchemes',
+  'bearerAuth', // Nome del metodo di sicurezza
+  {
+    type: 'http',
+    scheme: 'bearer',
+    bearerFormat: 'JWT',
+    description: 'Inserisci il token JWT ottenuto tramite POST /auth/login',
+  }
+);

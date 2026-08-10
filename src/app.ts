@@ -9,6 +9,7 @@ import { generateOpenAPIDocument } from "./docs/openapi.registry.js";
 import swaggerUi from "swagger-ui-express";
 import saleRoutes from "./routes/sale.routes.js";
 import proiezioneRoutes from "./routes/proiezione.routes.js";
+import authRoutes from "./routes/auth.routes.js";
 
 const PORT = process.env.PORT || 3000;
 
@@ -36,6 +37,7 @@ app.use("/docs", swaggerUi.serve, swaggerUi.setup(openApiDocument));
 app.use("/api/v1/films", filmRoutes);
 app.use("/api/v1/sales", saleRoutes);
 app.use("/api/v1/proiezioni", proiezioneRoutes);
+app.use("/api/v1/auth", authRoutes)
 
 // 1. Handler per le rotte non trovate (404)
 app.use(notFoundHandler);
