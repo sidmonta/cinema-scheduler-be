@@ -14,9 +14,9 @@ export const PrenotazioneSchema = registry.register(
   z.object({
     id: z.string().uuid().openapi({ example: '123e4567-e89b-12d3-a456-426614174000' }),
     proiezioneId: z.string().uuid().openapi({ example: '123e4567-e89b-12d3-a456-426614174000' }),
-    stato: StatoPrenotazioneEnum.default('PENDING'), // 👈 Usa l'enum definito sopra
-    fila: z.number().int().positive().openapi({ example: 5 }),
-    posto: z.number().int().positive().openapi({ example: 12 }), // 👈 Cambiato 'riga' in 'posto' se rilevante
+    stato: StatoPrenotazioneEnum.default('PENDING'),
+    riga: z.number().int().positive().openapi({ example: 5 }),
+    colonna: z.number().int().positive().openapi({ example: 12 }),
   }),
 );
 
@@ -37,8 +37,8 @@ export const createPrenotazioneBodySchema = z
       .string()
       .uuid('ID Proiezione non valido')
       .openapi({ example: '123e4567-e89b-12d3-a456-426614174000' }),
-    stato: StatoPrenotazioneEnum.optional().default('PENDING'), // 👈 Usa l'enum definito sopra
-    fila: z
+    stato: StatoPrenotazioneEnum.optional().default('PENDING'),
+    riga: z
       .number()
       .int()
       .positive('La fila deve essere un numero positivo')

@@ -11,7 +11,7 @@ export class PrenotazioneController {
 
   // POST /
   create = async (req: Request, res: Response) => {
-    // 🔒 Recupero automatico ID utente dal Token JWT
+    // Recupero automatico ID utente dal Token JWT
     const utenteId = req.user?.sub;
 
     if (!utenteId) {

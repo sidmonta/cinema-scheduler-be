@@ -1,6 +1,6 @@
 import { registerBodySchema, loginBodySchema } from '../schemas/auth.schema.js';
 import type { AuthService } from '../services/auth.service.js';
-import type { Request, Response } from 'express'; // 👈 Aggiungi questo import!
+import type { Request, Response } from 'express';
 
 export class AuthController {
   constructor(private readonly authService: AuthService) {}

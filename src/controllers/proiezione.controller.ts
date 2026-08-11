@@ -23,7 +23,6 @@ export class ProiezioneController {
   };
 
   delete = async (req: Request, res: Response) => {
-    // 💡 Nota: per una DELETE solitamente si imposta eliminata: true
     await this.proiezioneService.updateProiezioneExistence(res.locals.params.id, {
       eliminata: true,
     });
@@ -37,7 +36,7 @@ export class ProiezioneController {
   };
 
   getPalinsesto = async (req: Request, res: Response): Promise<void> => {
-    // ✅ 1. Sincronizzati con come leggi gli altri campi (usa res.locals)
+    // 1. Sincronizzati con come leggi gli altri campi (usa res.locals)
     // Se la rotta usa query parameter ?data=... leggi da res.locals.query.data
     // Se usa path parameter /:data leggi da res.locals.params.data
     const dataStr: string =
@@ -46,7 +45,7 @@ export class ProiezioneController {
       (req.query.data as string) ||
       (req.params.data as string);
 
-    // ✅ 2. Passa la STRINGA ("2026-08-07") al Service invece di convertirla qui a Date
+    // 2. Passa la STRINGA ("2026-08-07") al Service invece di convertirla qui a Date
     const result = await this.proiezioneService.getPalinsestoByDate(dataStr);
 
     if (!result.success) {
