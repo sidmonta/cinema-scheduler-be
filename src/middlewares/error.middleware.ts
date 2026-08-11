@@ -1,6 +1,6 @@
-import type { ErrorRequestHandler } from "express";
-import type { NextFunction, Request, Response } from "express";
-import { AppError } from "../config/app-error.js";
+import type { ErrorRequestHandler } from 'express';
+import type { NextFunction, Request, Response } from 'express';
+import { AppError } from '../config/app-error.js';
 
 export const errorHandler: ErrorRequestHandler = (
   err: Error,
@@ -19,12 +19,12 @@ export const errorHandler: ErrorRequestHandler = (
     return;
   }
 
-  console.error(" Errore Non Gestito:", err);
+  console.error(' Errore Non Gestito:', err);
 
   res.status(500).json({
     error: {
-      code: "INTERNAL_SERVER_ERROR",
-      message: "Si è verificato un errore interno del server",
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'Si è verificato un errore interno del server',
     },
   });
 };

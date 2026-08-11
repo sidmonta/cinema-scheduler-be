@@ -26,11 +26,29 @@ const proiezioneController = new ProiezioneController(proiezioneService);
 
 const router = Router();
 
-router.post('/',authenticate, authorize('ADMIN'), validate(createProiezioneSchema), proiezioneController.create);
+router.post(
+  '/',
+  authenticate,
+  authorize('ADMIN'),
+  validate(createProiezioneSchema),
+  proiezioneController.create,
+);
 router.get('/', validate(proiezionePaginationQuerySchema), proiezioneController.getAll);
 router.get('/:id', validate(proiezioneIdParamSchema), proiezioneController.getById);
-router.patch('/:id', authenticate, authorize('ADMIN'), validate(updateProiezioneSchema), proiezioneController.update);
-router.delete('/:id', authenticate, authorize('ADMIN'), validate(proiezioneIdParamSchema), proiezioneController.delete);
+router.patch(
+  '/:id',
+  authenticate,
+  authorize('ADMIN'),
+  validate(updateProiezioneSchema),
+  proiezioneController.update,
+);
+router.delete(
+  '/:id',
+  authenticate,
+  authorize('ADMIN'),
+  validate(proiezioneIdParamSchema),
+  proiezioneController.delete,
+);
 router.get(
   '/palinsesto/:data',
   validate(getPalinsestoSchema), // Valida req.query.data

@@ -1,11 +1,11 @@
-import { NotFoundError } from "../config/app-error.js";
-import type { FilmRepository } from "../repositories/film.repository.js";
+import { NotFoundError } from '../config/app-error.js';
+import type { FilmRepository } from '../repositories/film.repository.js';
 import type {
   CreateFilmInput,
   FilmPaginationQuery,
   UpdateFilmExistenceInput,
   UpdateFilmInput,
-} from "../schemas/film.schema.js";
+} from '../schemas/film.schema.js';
 
 export class FilmService {
   constructor(private readonly filmRepository: FilmRepository) {}

@@ -1,14 +1,12 @@
-import bcrypt from "bcryptjs";
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { ConflictError, UnauthorizedError } from "../config/app-error.js";
-import { err, ok } from "../config/result.type.js";
-import type { AuthRepository } from "../repositories/auth.repository.js";
-import type { RegisterInput, LoginInput } from "../schemas/auth.schema.js";
+import { ConflictError, UnauthorizedError } from '../config/app-error.js';
+import { err, ok } from '../config/result.type.js';
+import type { AuthRepository } from '../repositories/auth.repository.js';
+import type { RegisterInput, LoginInput } from '../schemas/auth.schema.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secrettokenjwt';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN 
-  ? Number(process.env.JWT_EXPIRES_IN) 
-  : 3600;
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN ? Number(process.env.JWT_EXPIRES_IN) : 3600;
 const SALT_ROUNDS = 10;
 export class AuthService {
   constructor(private readonly authRepository: AuthRepository) {}
@@ -33,7 +31,7 @@ export class AuthService {
     });
 
     // 4. Omettiamo la password prima di restituire i dati
-    const { password, ...utenteSenzaPassword } = nuovoUtente;
+    const { password: _password, ...utenteSenzaPassword } = nuovoUtente;
     return ok(utenteSenzaPassword);
   }
 

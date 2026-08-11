@@ -1,20 +1,16 @@
-import type { ProiezioneService } from "../services/proiezione.service.js";
-import type { Request, Response } from "express";
+import type { ProiezioneService } from '../services/proiezione.service.js';
+import type { Request, Response } from 'express';
 
 export class ProiezioneController {
   constructor(private readonly proiezioneService: ProiezioneService) {}
 
   create = async (req: Request, res: Response) => {
-    const proiezione = await this.proiezioneService.createProiezione(
-      res.locals.body,
-    );
+    const proiezione = await this.proiezioneService.createProiezione(res.locals.body);
     res.status(201).json({ data: proiezione });
   };
 
   getById = async (req: Request, res: Response) => {
-    const proiezione = await this.proiezioneService.findProiezioneById(
-      res.locals.params.id,
-    );
+    const proiezione = await this.proiezioneService.findProiezioneById(res.locals.params.id);
     res.status(200).json({ data: proiezione });
   };
 
@@ -28,10 +24,9 @@ export class ProiezioneController {
 
   delete = async (req: Request, res: Response) => {
     // 💡 Nota: per una DELETE solitamente si imposta eliminata: true
-    await this.proiezioneService.updateProiezioneExistence(
-      res.locals.params.id,
-      { eliminata: true },
-    );
+    await this.proiezioneService.updateProiezioneExistence(res.locals.params.id, {
+      eliminata: true,
+    });
     res.status(204).send();
   };
 
@@ -56,20 +51,17 @@ export class ProiezioneController {
 
     if (!result.success) {
       res.status(result.error.statusCode).json({
-        status: "error",
+        status: 'error',
         message: result.error.message,
       });
       return;
     }
 
     // Header per la cache
-    res.setHeader(
-      "X-Cache-Status",
-      result.data.source === "cache" ? "HIT" : "MISS",
-    );
+    res.setHeader('X-Cache-Status', result.data.source === 'cache' ? 'HIT' : 'MISS');
 
     res.status(200).json({
-      status: "success",
+      status: 'success',
       data: result.data.proiezioni,
     });
   };

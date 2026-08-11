@@ -1,18 +1,18 @@
-import type { ruoloEnum } from "../db/schema.js";
+import type { ruoloEnum } from '../db/schema.js';
 
 export type RuoloType = (typeof ruoloEnum.enumValues)[number]; // 'ADMIN' | 'USER'
 
 export interface JwtPayload {
-    sub: string,
-    email: string,
-    ruolo: RuoloType
+  sub: string;
+  email: string;
+  ruolo: RuoloType;
 }
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       user?: JwtPayload;
     }
   }
 }
-

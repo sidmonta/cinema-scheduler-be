@@ -1,6 +1,6 @@
-import type { FilmPaginationQuery } from "../schemas/film.schema.js";
-import type { FilmService } from "../services/film.service.js";
-import type { Request, Response } from "express";
+import type { FilmPaginationQuery } from '../schemas/film.schema.js';
+import type { FilmService } from '../services/film.service.js';
+import type { Request, Response } from 'express';
 
 export class FilmController {
   constructor(private readonly filmService: FilmService) {}
@@ -22,10 +22,7 @@ export class FilmController {
   };
 
   update = async (req: Request, res: Response) => {
-    const updatedFilm = await this.filmService.updateFilm(
-      req.params.id as string,
-      req.body,
-    );
+    const updatedFilm = await this.filmService.updateFilm(req.params.id as string, req.body);
     res.status(200).json({ data: updatedFilm });
   };
 
