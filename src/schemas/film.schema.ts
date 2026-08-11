@@ -1,26 +1,23 @@
-import { z } from "zod";
-import { registry } from "../docs/openapi.registry.js";
+import { z } from 'zod';
+import { registry } from '../docs/openapi.registry.js';
 
 // --- ENUM ---
-export const ClassificazioneEnum = z.enum(["T", "14+", "18+"]).openapi({
-  description: "Classificazione del film",
-  examples: ["T", "14+", "18+"],
+export const ClassificazioneEnum = z.enum(['T', '14+', '18+']).openapi({
+  description: 'Classificazione del film',
+  examples: ['T', '14+', '18+'],
 });
 export type Classificazione = z.infer<typeof ClassificazioneEnum>;
 
 export const FilmSchema = registry.register(
-  "Film",
+  'Film',
   z.object({
-    id: z
-      .string()
-      .uuid()
-      .openapi({ example: "123e4567-e89b-12d3-a456-426614174000" }),
-    titolo: z.string().openapi({ example: "Inception" }),
+    id: z.string().uuid().openapi({ example: '123e4567-e89b-12d3-a456-426614174000' }),
+    titolo: z.string().openapi({ example: 'Inception' }),
     durataMinuti: z.number().int().positive().openapi({ example: 148 }),
-    genere: z.string().openapi({ example: "Fantascienza" }),
+    genere: z.string().openapi({ example: 'Fantascienza' }),
     classificazione: ClassificazioneEnum,
-    creata_il: z.date().openapi({ example: "2026-03-30T10:00:00Z" }),
-    aggiornata_il: z.date().openapi({ example: "2026-03-30T10:00:00Z" }),
+    creata_il: z.date().openapi({ example: '2026-03-30T10:00:00Z' }),
+    aggiornata_il: z.date().openapi({ example: '2026-03-30T10:00:00Z' }),
     eliminata: z.boolean().openapi({ example: false }),
   }),
 );
@@ -28,7 +25,7 @@ export const FilmSchema = registry.register(
 // --- 1. PARAMS SCHEMAS (Mattoncino per l'ID) ---
 export const filmIdParamSchema = z
   .object({
-    id: z.string().uuid("ID non valido"),
+    id: z.string().uuid('ID non valido'),
   })
   .openapi({ description: "Parametri per l'ID del film" });
 
@@ -36,33 +33,27 @@ export const filmIdParamSchema = z
 
 // Schema base per la creazione (tutti i campi obbligatori)
 const baseCreateFilmSchema = z.object({
-  titolo: z
-    .string()
-    .min(1, "Il titolo è obbligatorio")
-    .openapi({ example: "Inception" }),
+  titolo: z.string().min(1, 'Il titolo è obbligatorio').openapi({ example: 'Inception' }),
   durataMinuti: z
     .number()
     .int()
-    .positive("La durata deve essere un numero positivo")
+    .positive('La durata deve essere un numero positivo')
     .openapi({ example: 148 }),
-  genere: z
-    .string()
-    .min(1, "Il genere è obbligatorio")
-    .openapi({ example: "Fantascienza" }),
+  genere: z.string().min(1, 'Il genere è obbligatorio').openapi({ example: 'Fantascienza' }),
   classificazione: ClassificazioneEnum,
 });
 
 // Create Body: Obbligatorio e non vuoto
 export const createFilmBodySchema = baseCreateFilmSchema.refine(
   (data) => Object.keys(data).length > 0,
-  { message: "Il corpo della richiesta non può essere vuoto" },
+  { message: 'Il corpo della richiesta non può essere vuoto' },
 );
 
 // Update Body: Tutti i campi opzionali, ma ALMENO UNO dev'essere presente
 export const updateFilmBodySchema = baseCreateFilmSchema
   .partial()
   .refine((data) => Object.keys(data).length > 0, {
-    message: "Fornire almeno un campo da aggiornare",
+    message: 'Fornire almeno un campo da aggiornare',
   });
 
 // Soft Delete / Ripristino Body
@@ -108,8 +99,6 @@ export const updateFilmExistenceSchema = z.object({
 // --- 5. TIPI INFERITI ---
 export type CreateFilmInput = z.infer<typeof createFilmBodySchema>;
 export type UpdateFilmInput = z.infer<typeof updateFilmBodySchema>;
-export type UpdateFilmExistenceInput = z.infer<
-  typeof updateFilmExistenceBodySchema
->;
+export type UpdateFilmExistenceInput = z.infer<typeof updateFilmExistenceBodySchema>;
 export type FilmPaginationQuery = z.infer<typeof filmPaginationQuerySchema>;
 export type FilmIdParam = z.infer<typeof filmIdParamSchema>;

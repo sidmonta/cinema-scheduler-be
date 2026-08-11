@@ -1,6 +1,6 @@
-import type { SalePaginationQuery } from "../schemas/sale.schema.js";
-import type { Request, Response } from "express";
-import type { SaleService } from "../services/sale.service.js";
+import type { SalePaginationQuery } from '../schemas/sale.schema.js';
+import type { Request, Response } from 'express';
+import type { SaleService } from '../services/sale.service.js';
 
 export class SaleController {
   constructor(private readonly saleService: SaleService) {}
@@ -22,10 +22,7 @@ export class SaleController {
   };
 
   update = async (req: Request, res: Response) => {
-    const updatedSale = await this.saleService.updateSale(
-      req.params.id as string,
-      res.locals.body,
-    );
+    const updatedSale = await this.saleService.updateSale(req.params.id as string, res.locals.body);
     res.status(200).json({ data: updatedSale });
   };
 

@@ -1,10 +1,7 @@
-import { eq, count } from "drizzle-orm";
-import { film } from "../db/schema.js";
-import type {
-  CreateFilmInput,
-  UpdateFilmInput,
-} from "../schemas/film.schema.js";
-import { db } from "../config/drizzle.config.connection.js";
+import { eq, count } from 'drizzle-orm';
+import { film } from '../db/schema.js';
+import type { CreateFilmInput, UpdateFilmInput } from '../schemas/film.schema.js';
+import { db } from '../config/drizzle.config.connection.js';
 
 export class FilmRepository {
   async create(data: CreateFilmInput) {

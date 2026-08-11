@@ -22,7 +22,12 @@ export default [
     rules: {
       ...tsPlugin.configs.recommended.rules,
       'prettier/prettier': 'error',
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': [
+        'error', { 
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+        
+        }],
       '@typescript-eslint/explicit-function-return-type': 'off',
     },
   },

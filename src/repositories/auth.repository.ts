@@ -1,14 +1,11 @@
-import { eq } from "drizzle-orm";
-import { db } from "../config/drizzle.config.connection.js";
-import { utente } from "../db/schema.js";
-import type { RegisterInput } from "../schemas/auth.schema.js";
+import { eq } from 'drizzle-orm';
+import { db } from '../config/drizzle.config.connection.js';
+import { utente } from '../db/schema.js';
+import type { RegisterInput } from '../schemas/auth.schema.js';
 
 export class AuthRepository {
   async findByEmail(email: string) {
-    const [found] = await db
-      .select()
-      .from(utente)
-      .where(eq(utente.email, email));
+    const [found] = await db.select().from(utente).where(eq(utente.email, email));
 
     return found || null;
   }

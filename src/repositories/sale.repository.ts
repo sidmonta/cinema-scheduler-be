@@ -1,11 +1,8 @@
-import { eq, count } from "drizzle-orm";
-import { db } from "../config/drizzle.config.connection.js";
-import { sala } from "../db/schema.js";
-import type {
-  CreateSaleInput,
-  UpdateSaleInput,
-} from "../schemas/sale.schema.js";
-import { ok } from "../config/result.type.js";
+import { eq, count } from 'drizzle-orm';
+import { db } from '../config/drizzle.config.connection.js';
+import { sala } from '../db/schema.js';
+import type { CreateSaleInput, UpdateSaleInput } from '../schemas/sale.schema.js';
+import { ok } from '../config/result.type.js';
 
 export class SaleRepository {
   async create(data: CreateSaleInput) {
@@ -19,12 +16,12 @@ export class SaleRepository {
         cinema_id: data.cinema_id,
       })
       .returning();
-    return ok(newSale);
+    return newSale;
   }
 
   async findById(id: string) {
     const [foundSale] = await db.select().from(sala).where(eq(sala.id, id));
-    return ok(foundSale);
+    return foundSale;
   }
 
   async findByName(name: string) {
@@ -48,7 +45,7 @@ export class SaleRepository {
         totalPages: Math.ceil(Number(total) / limit),
       },
     };
-    return ok(find);
+    return find;
   }
 
   async update(id: string, data: UpdateSaleInput) {
@@ -58,7 +55,7 @@ export class SaleRepository {
       .where(eq(sala.id, id))
       .returning();
 
-    return ok(updatedSale);
+    return updatedSale;
   }
 
   async updateExistence(id: string, data: { eliminata: boolean }) {
@@ -67,6 +64,6 @@ export class SaleRepository {
       .set({ ...data, aggiornata_il: new Date(), eliminata: true })
       .where(eq(sala.id, id))
       .returning();
-    return ok(data.eliminata);
+    return data.eliminata;
   }
 }

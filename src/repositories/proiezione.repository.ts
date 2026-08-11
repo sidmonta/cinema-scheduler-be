@@ -133,4 +133,17 @@ export class ProiezioneRepository {
 
     return updatedProiezione || null;
   }
+
+  async findProiezioneConCapacita(proiezioneId: string) {
+    const [result] = await db
+      .select({
+        proiezioneId: proiezione.id,
+        capacita: sala.capienza,
+      })
+      .from(proiezione)
+      .innerJoin(sala, eq(proiezione.sala_id, sala.id))
+      .where(and(eq(proiezione.id, proiezioneId), eq(proiezione.eliminata, false)));
+
+    return result || null;
+  }
 }

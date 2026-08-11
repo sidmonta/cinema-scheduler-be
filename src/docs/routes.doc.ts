@@ -16,6 +16,12 @@ import {
   palinsestoParamSchema,
 } from '../schemas/proiezione.schema.js';
 import { loginBodySchema, registerBodySchema } from '../schemas/auth.schema.js';
+import {
+  createPrenotazioneBodySchema,
+  PrenotazioneSchema,
+  prenotazionePaginationQuerySchema,
+  prenotazioneIdParamSchema,
+} from '../schemas/prenotazione.schema.js';
 
 // --- ROTTE FILM ---
 // 1. GET /films
@@ -398,5 +404,101 @@ registry.registerPath({
   },
   responses: {
     409: { description: 'Utente già registrato' },
+  },
+});
+
+// --- ROTTE PRENOTAZIONI ---
+// 1. POST /prenotazioni
+registry.registerPath({
+  method: 'post',
+  path: '/prenotazioni',
+  tags: ['Prenotazioni'],
+  summary: 'Crea una nuova prenotazione (Richiede Token Bearer)',
+  request: {
+    body: {
+      content: {
+        'application/json': { schema: createPrenotazioneBodySchema },
+      },
+    },
+  },
+  responses: {
+    201: {
+      description: 'Prenotazione creata con successo',
+      content: {
+        'application/json': { schema: z.object({ data: PrenotazioneSchema }) },
+      },
+    },
+    400: { description: 'Dati di input non validi' },
+    401: { description: 'Utente non autenticato o token scaduto' },
+    409: { description: 'Conflitto: Il posto selezionato è già stato occupato' },
+  },
+});
+
+// 2. GET /prenotazioni/mie
+registry.registerPath({
+  method: 'get',
+  path: '/prenotazioni/mie',
+  tags: ['Prenotazioni'],
+  summary: "Ottieni la lista delle prenotazioni dell'utente autenticato",
+  request: {
+    query: prenotazionePaginationQuerySchema,
+  },
+  responses: {
+    200: {
+      description: 'Lista prenotazioni recuperata con successo',
+      content: {
+        'application/json': {
+          schema: z.object({
+            data: z.array(PrenotazioneSchema),
+            meta: z.object({
+              page: z.number(),
+              limit: z.number(),
+              totalRecords: z.number(),
+              totalPages: z.number(),
+            }),
+          }),
+        },
+      },
+    },
+    401: { description: 'Utente non autenticato' },
+  },
+});
+
+// 3. GET /prenotazioni/{id}
+registry.registerPath({
+  method: 'get',
+  path: '/prenotazioni/{id}',
+  tags: ['Prenotazioni'],
+  summary: 'Ottieni il dettaglio di una prenotazione tramite ID',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: prenotazioneIdParamSchema,
+  },
+  responses: {
+    200: {
+      description: 'Dettaglio della prenotazione',
+      content: {
+        'application/json': { schema: z.object({ data: PrenotazioneSchema }) },
+      },
+    },
+    401: { description: 'Utente non autenticato' },
+    404: { description: 'Prenotazione non trovata' },
+  },
+});
+
+// 4. DELETE /prenotazioni/{id}
+registry.registerPath({
+  method: 'delete',
+  path: '/prenotazioni/{id}',
+  tags: ['Prenotazioni'],
+  summary: 'Annulla/Elimina una prenotazione (soft delete)',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: prenotazioneIdParamSchema,
+  },
+  responses: {
+    204: { description: 'Prenotazione annullata con successo' },
+    401: { description: 'Utente non autenticato' },
+    404: { description: 'Prenotazione non trovata' },
   },
 });

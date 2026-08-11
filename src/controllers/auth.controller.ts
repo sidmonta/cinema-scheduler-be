@@ -1,6 +1,6 @@
-import { registerBodySchema, loginBodySchema } from "../schemas/auth.schema.js";
-import type { AuthService } from "../services/auth.service.js";
-import type { Request, Response } from "express"; // 👈 Aggiungi questo import!
+import { registerBodySchema, loginBodySchema } from '../schemas/auth.schema.js';
+import type { AuthService } from '../services/auth.service.js';
+import type { Request, Response } from 'express'; // 👈 Aggiungi questo import!
 
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -13,7 +13,9 @@ export class AuthController {
 
     const result = await this.authService.register(parseResult.data);
     if (!result.success) {
-      return res.status(result.error.statusCode).json({ success: false, message: result.error.message });
+      return res
+        .status(result.error.statusCode)
+        .json({ success: false, message: result.error.message });
     }
 
     return res.status(201).json({ success: true, data: result.data });
@@ -27,7 +29,9 @@ export class AuthController {
 
     const result = await this.authService.login(parseResult.data);
     if (!result.success) {
-      return res.status(result.error.statusCode).json({ success: false, message: result.error.message });
+      return res
+        .status(result.error.statusCode)
+        .json({ success: false, message: result.error.message });
     }
 
     return res.status(200).json({ success: true, data: result.data });

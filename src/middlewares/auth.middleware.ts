@@ -1,7 +1,6 @@
-import type { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import type { JwtPayload, RuoloType } from "../config/jwt.config.js";
-
+import type { JwtPayload, RuoloType } from '../config/jwt.config.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secrettokenjwt';
 
@@ -21,7 +20,7 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
     const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
     req.user = decoded; // Agganciamo l'utente alla richiesta
     next();
-  } catch (_error) {
+  } catch {
     return res.status(401).json({
       success: false,
       error: { code: 'UNAUTHORIZED', message: 'Token scaduto o non valido.' },
@@ -41,7 +40,10 @@ export const authorize = (...allowedRoles: RuoloType[]) => {
     if (!allowedRoles.includes(req.user.ruolo)) {
       return res.status(403).json({
         success: false,
-        error: { code: 'FORBIDDEN', message: 'Non disponi dei permessi necessari per accedere a questa risorsa.' },
+        error: {
+          code: 'FORBIDDEN',
+          message: 'Non disponi dei permessi necessari per accedere a questa risorsa.',
+        },
       });
     }
 

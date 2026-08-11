@@ -1,21 +1,19 @@
-import { ConflictError, NotFoundError } from "../config/app-error.js";
-import { err, ok } from "../config/result.type.js";
-import type { SaleRepository } from "../repositories/sale.repository.js";
+import { ConflictError, NotFoundError } from '../config/app-error.js';
+import { err, ok } from '../config/result.type.js';
+import type { SaleRepository } from '../repositories/sale.repository.js';
 import type {
   CreateSaleInput,
   SalePaginationQuery,
   UpdateSaleExistenceInput,
   UpdateSaleInput,
-} from "../schemas/sale.schema.js";
+} from '../schemas/sale.schema.js';
 
 export class SaleService {
   constructor(private readonly saleRepository: SaleRepository) {}
 
   async createSale(input: CreateSaleInput) {
     if (!(await this.saleRepository.findByName(input.nome))) {
-      return err(
-        new ConflictError("Sala con nome: '${input.nome} già esistente"),
-      );
+      return err(new ConflictError("Sala con nome: '${input.nome} già esistente"));
     }
     return ok(await this.saleRepository.create(input));
   }
@@ -45,7 +43,7 @@ export class SaleService {
     // Verifica prima l'esistenza
     const sale = await this.getSaleById(id);
     if (!sale) {
-      return err(new NotFoundError("Sala non trovata"));
+      return err(new NotFoundError('Sala non trovata'));
     }
     return ok(await this.saleRepository.update(id, input));
   }
