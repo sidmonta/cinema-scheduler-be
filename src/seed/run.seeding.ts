@@ -1,11 +1,11 @@
-import { runCsvSeed } from "./seeding.js";
+import { runCsvSeed } from './seeding.js';
 
 async function run() {
   try {
     await runCsvSeed();
     process.exit(0);
   } catch (error) {
-    console.error("❌ Errore durante il seeding da CSV:", error);
+    console.error('❌ Errore durante il seeding da CSV:', error);
     process.exit(1);
   }
 }

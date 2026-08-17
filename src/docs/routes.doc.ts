@@ -22,6 +22,10 @@ import {
   prenotazionePaginationQuerySchema,
   prenotazioneIdParamSchema,
 } from '../schemas/prenotazione.schema.js';
+import {
+  statisticsQuerySchema,
+  StatisticsReportResponseSchema,
+} from '../schemas/statistics.schema.js';
 
 // --- ROTTE FILM ---
 // 1. GET /films
@@ -500,5 +504,27 @@ registry.registerPath({
     204: { description: 'Prenotazione annullata con successo' },
     401: { description: 'Utente non autenticato' },
     404: { description: 'Prenotazione non trovata' },
+  },
+});
+
+// --- ROTTE STATISTICHE ---
+// 1. GET /statistiche
+registry.registerPath({
+  method: 'get',
+  path: '/statistiche',
+  tags: ['Statistiche'],
+  summary: 'Ottieni statistiche',
+  request: {
+    query: statisticsQuerySchema,
+  },
+  responses: {
+    200: {
+      description: 'Statistiche estratte',
+      content: {
+        'application/json': { schema: z.object({ data: StatisticsReportResponseSchema }) },
+      },
+    },
+    400: { description: 'Dati di input non validi' },
+    401: { description: 'Utente non autenticato o token scaduto' },
   },
 });
