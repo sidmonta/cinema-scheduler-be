@@ -37,7 +37,6 @@ export class StatisticsService {
       .where(and(eq(prenotazione.eliminata, false), eq(prenotazione.stato, 'CONFIRMED')));
     console.log('PRENOTAZIONI TOTALE A DB:', prenotazioniList.length);
 
-    // Mappa per lookup rapido delle prenotazioni: proiezione_id -> array di prenotazioni
     const prenotazioniPerProiezione = new Map<string, typeof prenotazioniList>();
     for (const p of prenotazioniList) {
       const list = prenotazioniPerProiezione.get(p.proiezione_id) || [];
@@ -47,7 +46,6 @@ export class StatisticsService {
 
     const reportPerSala = [];
 
-    // 2. Calcolo intensivo IN-MEMORY con cicli JavaScript
     for (const s of saleList) {
       const proiezioniDellaSala = proiezioniList.filter((p) => p.sala_id === s.id);
 
@@ -57,7 +55,6 @@ export class StatisticsService {
       const proiezioniReport = [];
 
       for (const p of proiezioniDellaSala) {
-        // Inizializza la matrice della sala: righe x colonne riempite con 0 (libero)
         const matriceOccupazione: number[][] = Array.from({ length: s.righe }, () =>
           Array(s.colonne).fill(0),
         );
@@ -74,7 +71,6 @@ export class StatisticsService {
           }
         }
 
-        // Simula ulteriore computazione CPU-bound (es. scansione esaustiva e matriciale)
         let postiOccupatiProiezione = 0;
         for (let r = 0; r < s.righe; r++) {
           for (let c = 0; c < s.colonne; c++) {
