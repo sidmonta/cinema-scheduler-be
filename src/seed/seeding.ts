@@ -4,6 +4,7 @@ import csv from 'csv-parser';
 import { sql } from 'drizzle-orm';
 import { cinema, sala, film, proiezione, utente, prenotazione, posto } from '../db/schema.js';
 import { db } from '../config/drizzle.config.connection.js';
+import { any, boolean, map } from 'zod';
 
 function readCsv<T = any>(filePath: string): Promise<T[]> {
   return new Promise((resolve, reject) => {
@@ -123,7 +124,8 @@ export async function runCsvSeed() {
 
   // --- F. PRENOTAZIONI ---
   const prenotazioneData = await readCsv(path.join(initDataDir, 'prenotazioni.csv'));
-  for (const row of prenotazioneData) {
+  
+  const prenotazioni: any = prenotazioneData.map(row => {
     const utenteId = utenteMap.get(String(row.utente_id ?? row.utenteId));
     const proiezioneId = proiezioneMap.get(String(row.proiezione_id ?? row.proiezioneId));
 
@@ -132,12 +134,9 @@ export async function runCsvSeed() {
       console.error(
         ` Errore mappa: utente_id (${row.utente_id}) o proiezione_id (${row.proiezione_id}) non trovati.`,
       );
-      continue;
+      return undefined;
     }
-
-    const [inserted] = await db
-      .insert(prenotazione)
-      .values({
+    return {
         // Nota: se il tuo schema Drizzle usa la nomenclatura camelCase (es. utenteId / proiezioneId)
         // assegna le chiavi corrette. Se usa snake_case lascia utente_id / proiezione_id.
         utente_id: utenteId,
@@ -145,12 +144,17 @@ export async function runCsvSeed() {
         riga: Number(row.riga),
         colonna: Number(row.colonna),
         stato: row.stato ?? 'CONFIRMED', // Prende 'CONFIRMED' dal CSV
-      })
-      .returning();
-
-    if (row.id) prenotazioneMap.set(String(row.id), inserted.id);
+    }
+  }).filter(Boolean)
+  let variabile = chunk<any>(prenotazioni, 50);
+  for(const i of variabile){
+    const inserteds = await db
+      .insert(prenotazione)
+      .values(i)
+      .onConflictDoNothing()
+      .returning();   
+    console.log(` Inseriti ${inserteds.length} record in 'prenotazione'`);
   }
-  console.log(` Inseriti ${prenotazioneData.length} record in 'prenotazione'`);
 
   // --- G. POSTI ---
   const postoFilePath = path.join(initDataDir, 'posto.csv');
@@ -167,4 +171,20 @@ export async function runCsvSeed() {
   }
 
   console.log('\n Seeding completato con successo!');
+}
+
+//Array di array
+function chunk<T>(array: T[], tranche: number): T[][]{
+
+  const split = Math.floor(array.length/tranche);
+  const finalArray = [];
+
+  for(let i=0; i < array.length; i=i+split){
+    const subarray = [];
+    for(let j=0; j < split; j++){
+      subarray.push(array[i+j]);
+    }
+    finalArray.push(subarray);
+  }
+  return finalArray;
 }

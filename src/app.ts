@@ -12,6 +12,8 @@ import proiezioneRoutes from './routes/proiezione.routes.js';
 import authRoutes from './routes/auth.routes.js';
 import prenotazioneRoutes from './routes/prenotazione.routes.js';
 import statisticsRoutes from './routes/statistics.routes.js';
+import { log } from './middlewares/log.middleware.js';
+
 
 const PORT = process.env.PORT || 3000;
 
@@ -26,9 +28,7 @@ app.get('/openapi.json', (_req, res) => {
   res.send(openApiDocument);
 });
 
-app.get('/health', (_req, res) => {
-  res.status(200).json({ status: 'ok' });
-});
+
 
 process.on('SIGTERM', () => {
   debug('SIGTERM signal received: closing HTTP server');
@@ -39,6 +39,10 @@ process.on('SIGTERM', () => {
 
 app.use(express.json());
 
+app.use(log);
+app.get('/health', (_req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(openApiDocument));
 app.use('/api/v1/films', filmRoutes);
 app.use('/api/v1/sales', saleRoutes);

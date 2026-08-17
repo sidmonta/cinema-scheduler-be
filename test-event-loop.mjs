@@ -1,12 +1,12 @@
-import { performance } from 'node:perf_hooks';
+import { performance as Date } from 'node:perf_hooks';
 
 const BASE_URL = 'http://localhost:3000';
 
 async function measureHealth(label) {
-  const start = performance.now();
+  const start = Date.now();
   try {
     const res = await fetch(`${BASE_URL}/health`);
-    const duration = (performance.now() - start).toFixed(2);
+    const duration = (Date.now() - start).toFixed(2);
     console.log(`[HEALTH CHECK - ${label}] Status: ${res.status} | Tempo impiegato: ${duration} ms`);
     return Number(duration);
   } catch (err) {
@@ -17,31 +17,52 @@ async function measureHealth(label) {
 
 async function runTest() {
   console.log('=== TEST DI IMPATTO SULL\'EVENT LOOP ===\n');
+  let healthStart = Date.now();
 
   // 1. Misurazione baseline (Server a riposo)
   console.log('1. Misurazione latenza /health a riposo...');
-  const baselineLatency = await measureHealth('BASELINE');
+  const baselineLatency = await fetch(`${BASE_URL}/health`).then(async (res) => {
+      const healthDuration = (Date.now() - healthStart).toFixed(2);
+      console.log(`[HEALTH] Status: ${res.status} | Tempo totale chiamata: ${healthDuration} ms`);
+      return healthDuration;
+    })
+
+    await fetch(`${BASE_URL}/health`).then(async (res) => {
+      const healthDuration = (Date.now() - healthStart).toFixed(2);
+      console.log(`[HEALTH] Status: ${res.status} | Tempo totale chiamata: ${healthDuration} ms`);
+      return healthDuration;
+    })
   
   console.log('\n2. Avvio richiesta pesante al report + /health in parallelo...\n');
 
-  const reportStart = performance.now();
+  const reportStart = Date.now();
+  healthStart = Date.now();
+
 
   // 2. Lancio in parallelo: Report (pesante) e Health Probe
-  const [reportResult, healthResult] = await Promise.allSettled([
+  const [reportResult, healthResult] = await Promise.all([
     // Richiesta pesante
     fetch(`${BASE_URL}/api/v1/statistiche?anno=2026&mese=8`).then(async (res) => {
-      const reportDuration = (performance.now() - reportStart).toFixed(2);
+      const reportDuration = (Date.now() - reportStart).toFixed(2);
       console.log(`[REPORT STATISTICHE] Status: ${res.status} | Tempo totale report: ${reportDuration} ms`);
       return reportDuration;
     }),
 
     // Probe inviata 5ms dopo l'inizio del report per intercettare il blocco
+    /*
     new Promise((resolve) => {
       setTimeout(async () => {
         const healthDuration = await measureHealth('DURANTE REPORT');
         resolve(healthDuration);
       }, 5);
     })
+      */
+
+    fetch(`${BASE_URL}/health`).then(async (res) => {
+      const healthDuration = (Date.now() - healthStart).toFixed(2);
+      console.log(`[HEALTH] Status: ${res.status} | Tempo totale chiamata: ${healthDuration} ms`);
+      return healthDuration;
+    }),
   ]);
 
   console.log('\n=== RISULTATI DEL TEST ===');
