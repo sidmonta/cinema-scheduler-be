@@ -24,13 +24,13 @@ export class PrenotazioneService {
     if (prenotazioniAttuali >= sala.capienza!) {
       return err(new ForbiddenError('La proiezione selezionata è sold out'));
     }
-    if (input.colonna > colonne || input.fila > righe) {
+    if (input.colonna > colonne || input.riga > righe) {
       return err(new ForbiddenError('Il posto selezionato è inesistente'));
     }
     const result = await this.repository.createConConcorrenza({
       utente_id: utenteId, // Automatico dal token
       proiezione_id: input.proiezioneId,
-      riga: input.fila,
+      riga: input.riga,
       colonna: input.colonna,
       stato: input.stato,
     });

@@ -27,7 +27,7 @@
     "db:generate": "drizzle-kit generate --config=drizzle.config.ts",
     "db:migrate": "drizzle-kit migrate --config=drizzle.config.ts",
     "db:studio": "drizzle-kit studio --config=drizzle.config.ts",
-    "db:seed": "npx tsx scripts/seed.ts",
+    "db:seed": "tsx --env-file=.env src/seed/run.seeding.ts",
     "db:check": "drizzle-kit check --config=drizzle.config.ts"
   },
   "lint-staged": {
@@ -40,7 +40,7 @@
     "@asteasolutions/zod-to-openapi": "^9.1.0",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
-    "cors": "^2.8.6",
+    "csv-parser": "^3.2.1",
     "dotenv": "^17.4.2",
     "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.45.2",
@@ -61,7 +61,7 @@
     "@types/express": "^5.0.6",
     "@types/ioredis": "^4.28.10",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "^26.1.2",
+    "@types/node": "^26.2.0",
     "@types/pg": "^8.20.3",
     "@types/swagger-ui-express": "^4.1.8",
     "eslint": "^10.8.0",
