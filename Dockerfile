@@ -5,4 +5,5 @@ RUN npm ci
 COPY . .
 
 FROM base AS dev
+RUN apk add --no-cache postgresql-client
 CMD ["npx", "tsx", "watch", "src/app.ts"]

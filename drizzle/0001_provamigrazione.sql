@@ -55,6 +55,7 @@ CREATE TABLE "utente" (
 --> statement-breakpoint
 ALTER TABLE "film" RENAME COLUMN "durata" TO "durata_minuti";--> statement-breakpoint
 ALTER TABLE "sala" RENAME COLUMN "file" TO "righe";--> statement-breakpoint
+ALTER TABLE "sala" DROP COLUMN "capienza";--> statement-breakpoint
 ALTER TABLE "sala" ADD COLUMN "capienza" integer GENERATED ALWAYS AS ("righe" * "colonne") STORED;--> statement-breakpoint
 ALTER TABLE "sala" ADD COLUMN "cinema_id" uuid NOT NULL;--> statement-breakpoint
 ALTER TABLE "posto" ADD CONSTRAINT "posto_prenotazione_id_prenotazione_id_fk" FOREIGN KEY ("prenotazione_id") REFERENCES "public"."prenotazione"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
