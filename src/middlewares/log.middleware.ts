@@ -7,7 +7,7 @@ export const log = (req: Request, res: Response, next: NextFunction) => {
     const durationMs = Number(end - start) / 1e6;
 
     console.log(
-      `[metrics] ${req.method} ${req.route?.path ?? req.path} ${res.statusCode} - ${durationMs.toFixed(2)}ms`,
+      `[metrics] ${req.method} ${req.url ?? req.path} ${res.statusCode} - ${durationMs.toFixed(2)}ms`,
     );
   });
   next();

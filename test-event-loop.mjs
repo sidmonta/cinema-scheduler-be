@@ -48,16 +48,6 @@ async function runTest() {
       return reportDuration;
     }),
 
-    // Probe inviata 5ms dopo l'inizio del report per intercettare il blocco
-    /*
-    new Promise((resolve) => {
-      setTimeout(async () => {
-        const healthDuration = await measureHealth('DURANTE REPORT');
-        resolve(healthDuration);
-      }, 5);
-    })
-      */
-
     fetch(`${BASE_URL}/health`).then(async (res) => {
       const healthDuration = (Date.now() - healthStart).toFixed(2);
       console.log(`[HEALTH] Status: ${res.status} | Tempo totale chiamata: ${healthDuration} ms`);
@@ -66,7 +56,7 @@ async function runTest() {
   ]);
 
   console.log('\n=== RISULTATI DEL TEST ===');
-  const durationDuringReport = healthResult.value;
+  const durationDuringReport = healthResult;
 
   if (baselineLatency && durationDuringReport) {
     const incremento = (durationDuringReport - baselineLatency).toFixed(2);
@@ -82,4 +72,4 @@ async function runTest() {
   }
 }
 
-runTest();
+runTest().then(console.log).catch(console.error);
