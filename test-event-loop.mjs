@@ -25,46 +25,56 @@ async function runTest() {
       const healthDuration = (Date.now() - healthStart).toFixed(2);
       console.log(`[HEALTH] Status: ${res.status} | Tempo totale chiamata: ${healthDuration} ms`);
       return healthDuration;
-    })
+    });
 
-    await fetch(`${BASE_URL}/health`).then(async (res) => {
+  console.log('1. Misurazione latenza /health seconda chiamata dopo "risveglio"...');
+  healthStart = Date.now();
+  const baselineLatency2 = await fetch(`${BASE_URL}/health`).then(async (res) => {
       const healthDuration = (Date.now() - healthStart).toFixed(2);
       console.log(`[HEALTH] Status: ${res.status} | Tempo totale chiamata: ${healthDuration} ms`);
       return healthDuration;
     })
   
-  console.log('\n2. Avvio richiesta pesante al report + /health in parallelo...\n');
+  console.log('\n2. Avvio richiesta pesante al report\n');
+  let reportStart = Date.now();
+  const reportLatency = await fetch(`${BASE_URL}/api/v1/statistiche?anno=2026&mese=8`).then(async (res) => {
+      const reportDuration = (Date.now() - reportStart).toFixed(2);
+      console.log(`[REPORT] Status: ${res.status} | Tempo totale chiamata: ${reportDuration} ms`);
+      return reportDuration;
+    })
 
-  const reportStart = Date.now();
+
+  console.log('\n2. Avvio richiesta pesante al report + /health in parallelo...\n');
+  reportStart = Date.now();
   healthStart = Date.now();
 
-
-  // 2. Lancio in parallelo: Report (pesante) e Health Probe
   const [reportResult, healthResult] = await Promise.all([
     // Richiesta pesante
     fetch(`${BASE_URL}/api/v1/statistiche?anno=2026&mese=8`).then(async (res) => {
-      const reportDuration = (Date.now() - reportStart).toFixed(2);
-      console.log(`[REPORT STATISTICHE] Status: ${res.status} | Tempo totale report: ${reportDuration} ms`);
-      return reportDuration;
+      const reportDuration2 = (Date.now() - reportStart).toFixed(2);
+      console.log(res);
+      console.log(`[REPORT STATISTICHE] Status: ${res.status} | Tempo totale report: ${reportDuration2} ms`);
+      return reportDuration2;
     }),
 
     fetch(`${BASE_URL}/health`).then(async (res) => {
-      const healthDuration = (Date.now() - healthStart).toFixed(2);
-      console.log(`[HEALTH] Status: ${res.status} | Tempo totale chiamata: ${healthDuration} ms`);
-      return healthDuration;
+      const healthDuration2 = (Date.now() - healthStart).toFixed(2);
+      console.log(`[HEALTH] Status: ${res.status} | Tempo totale chiamata: ${healthDuration2} ms`);
+      return healthDuration2;
     }),
   ]);
 
   console.log('\n=== RISULTATI DEL TEST ===');
-  const durationDuringReport = healthResult;
 
-  if (baselineLatency && durationDuringReport) {
-    const incremento = (durationDuringReport - baselineLatency).toFixed(2);
-    console.log(`• Latenza /health normale:     ${baselineLatency} ms`);
-    console.log(`• Latenza /health con blocco:  ${durationDuringReport} ms`);
-    console.log(`• Rallentamento della sonda:   +${incremento} ms`);
+  if (baselineLatency) {
+    console.log(`• Latenza /health (dormiente):     ${baselineLatency} ms`);
+    console.log(`• Latenza /health (svegliato):     ${baselineLatency2} ms`);
+    console.log(`• Latenza report:  ${reportLatency} ms`);
+    console.log(`• Latenza report + /health (report):  ${reportResult} ms`);
+    console.log(`• Latenza report + /health (health):  ${healthResult} ms`);
+    console.log(`• Differenza tempi di /health:  ${baselineLatency2 - healthResult} ms`);
 
-    if (durationDuringReport > 50) {
+    if (reportLatency > 50) {
       console.log('\n DETECTED: L\'algoritmo sincrono sta bloccando l\'Event Loop di Node.js!');
     } else {
       console.log('\n L\'impatto sull\'Event Loop è contenuto (volume dati ridotto).');

@@ -14,7 +14,6 @@ import prenotazioneRoutes from './routes/prenotazione.routes.js';
 import statisticsRoutes from './routes/statistics.routes.js';
 import { log } from './middlewares/log.middleware.js';
 
-
 const PORT = process.env.PORT || 3000;
 
 const app = express();
@@ -27,8 +26,6 @@ app.get('/openapi.json', (_req, res) => {
   res.setHeader('Content-Type', 'application/json');
   res.send(openApiDocument);
 });
-
-
 
 process.on('SIGTERM', () => {
   debug('SIGTERM signal received: closing HTTP server');

@@ -23,6 +23,7 @@ import {
   prenotazioneIdParamSchema,
 } from '../schemas/prenotazione.schema.js';
 import {
+  ProiezioneMatriceResponseSchema,
   statisticsQuerySchema,
   StatisticsReportResponseSchema,
 } from '../schemas/statistics.schema.js';
@@ -509,22 +510,53 @@ registry.registerPath({
 
 // --- ROTTE STATISTICHE ---
 // 1. GET /statistiche
+
 registry.registerPath({
   method: 'get',
   path: '/statistiche',
   tags: ['Statistiche'],
-  summary: 'Ottieni statistiche',
+  summary: 'Ottieni report occupazione mensile per tutte le proiezioni',
   request: {
     query: statisticsQuerySchema,
   },
   responses: {
     200: {
-      description: 'Statistiche estratte',
+      description: 'Statistiche estratte con successo',
       content: {
-        'application/json': { schema: z.object({ data: StatisticsReportResponseSchema }) },
+        'application/json': {
+          schema: z.object({
+            data: StatisticsReportResponseSchema,
+          }),
+        },
       },
     },
-    400: { description: 'Dati di input non validi' },
+    400: { description: 'Parametri query (anno/mese) non validi' },
     401: { description: 'Utente non autenticato o token scaduto' },
+  },
+});
+
+// 2. GET /statistiche/proiezioni/{id}/matrice (Dettaglio Matrice Singola Proiezione)
+registry.registerPath({
+  method: 'get',
+  path: '/statistiche/proiezioni/{id}/matrice',
+  tags: ['Statistiche'],
+  summary: 'Ottieni la matrice 2D dei posti per una singola proiezione',
+  request: {
+    params: proiezioneIdParamSchema,
+  },
+  responses: {
+    200: {
+      description: 'Matrice della proiezione estratta con successo',
+      content: {
+        'application/json': {
+          schema: z.object({
+            data: ProiezioneMatriceResponseSchema,
+          }),
+        },
+      },
+    },
+    400: { description: 'ID proiezione non valido' },
+    401: { description: 'Utente non autenticato o token scaduto' },
+    404: { description: 'Proiezione non trovata' },
   },
 });

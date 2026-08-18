@@ -6,6 +6,7 @@ import { ProiezioneRepository } from '../repositories/proiezione.repository.js';
 import { SaleRepository } from '../repositories/sale.repository.js';
 import { StatisticsService } from '../services/statistics.service.js';
 import { getStatisticsSchema } from '../schemas/statistics.schema.js';
+import { getProiezioneByIdSchema } from '../schemas/proiezione.schema.js';
 
 const prenotazioneRepository = new PrenotazioneRepository();
 const proiezioneRepository = new ProiezioneRepository();
@@ -20,5 +21,10 @@ const statisticsController = new StatisticsController(statisticsService);
 const router = Router();
 
 router.get('/', validate(getStatisticsSchema), statisticsController.createStat);
+router.get(
+  '/proiezioni/:id/matrice',
+  validate(getProiezioneByIdSchema),
+  statisticsController.createMatrix,
+);
 
 export default router;

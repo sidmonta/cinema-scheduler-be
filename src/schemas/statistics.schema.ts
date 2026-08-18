@@ -2,11 +2,11 @@ import z from 'zod';
 import { registry } from '../docs/openapi.registry.js';
 
 // ==========================================
-// 1. QUERY PARAMS SCHEMA
+// 1. QUERY PARAMS & PARAMS SCHEMAS
 // ==========================================
 
 export const statisticsQuerySchema = registry.register(
-  'Statistiche',
+  'StatisticsQuery',
   z.object({
     anno: z.coerce
       .number()
@@ -23,51 +23,68 @@ export const statisticsQuerySchema = registry.register(
   }),
 );
 
+export const proiezioneIdParamSchema = z.object({
+  id: z.string().uuid("L'ID della proiezione deve essere un UUID valido").openapi({
+    example: 'a1114567-e89b-12d3-a456-426614174000',
+    description: 'ID identificativo della proiezione',
+  }),
+});
+
 // ==========================================
-// 2. UNIFIED RESPONSE SCHEMA (OPENAPI REGISTERED)
+// 2. RESPONSE SCHEMAS
 // ==========================================
 
+// A. Report Generale Mensile (SENZA Matrice per prevenire crash di Swagger UI)
 export const StatisticsReportResponseSchema = registry.register(
   'StatisticsReportResponse',
   z.array(
     z.object({
+      proiezioneId: z.string().uuid().openapi({ example: 'a1114567-e89b-12d3-a456-426614174000' }),
       salaId: z.string().uuid().openapi({ example: 'abc34567-e89b-12d3-a456-426614174999' }),
       nomeSala: z.string().openapi({ example: 'Sala IMAX' }),
-      totaleProiezioni: z.number().int().nonnegative().openapi({ example: 45 }),
-      percentualeOccupazioneTotale: z.number().min(0).max(100).openapi({ example: 68.5 }),
-      proiezioni: z.array(
-        z.object({
-          proiezioneId: z
-            .string()
-            .uuid()
-            .openapi({ example: 'a1114567-e89b-12d3-a456-426614174000' }),
-          dataInizio: z
-            .date()
-            .or(z.string().datetime())
-            .openapi({ example: '2026-08-15T20:30:00.000Z' }),
-          matriceOccupazione: z.array(z.array(z.number().int().min(0).max(1))).openapi({
-            example: [
-              [1, 1, 0, 0],
-              [0, 1, 1, 0],
-              [0, 0, 0, 0],
-            ],
-            description: 'Matrice della sala con 1 per posto prenotato e 0 per posto libero',
-          }),
-          postiOccupati: z.number().int().nonnegative().openapi({ example: 4 }),
-          capienzaTotale: z.number().int().positive().openapi({ example: 12 }),
-          percentualeOccupazione: z.number().min(0).max(100).openapi({ example: 33.33 }),
-        }),
-      ),
+      dataOra: z.date().or(z.string().datetime()).openapi({ example: '2026-08-15T20:30:00.000Z' }),
+      postiOccupati: z.number().int().nonnegative().openapi({ example: 42 }),
+      capienzaTotale: z.number().int().positive().openapi({ example: 120 }),
+      percentualeOccupazione: z.number().min(0).max(100).openapi({ example: 35.0 }),
     }),
   ),
 );
 
+// B. Dettaglio Singola Proiezione (CON Matrice Posti)
+export const ProiezioneMatriceResponseSchema = registry.register(
+  'ProiezioneMatriceResponse',
+  z.object({
+    proiezioneId: z.string().uuid().openapi({ example: 'a1114567-e89b-12d3-a456-426614174000' }),
+    salaId: z.string().uuid().openapi({ example: 'abc34567-e89b-12d3-a456-426614174999' }),
+    nomeSala: z.string().openapi({ example: 'Sala IMAX' }),
+    dataOraInizio: z
+      .date()
+      .or(z.string().datetime())
+      .openapi({ example: '2026-08-15T20:30:00.000Z' }),
+    postiOccupati: z.number().int().nonnegative().openapi({ example: 4 }),
+    capienzaTotale: z.number().int().positive().openapi({ example: 12 }),
+    percentualeOccupazione: z.number().min(0).max(100).openapi({ example: 33.33 }),
+    matriceOccupazione: z.array(z.array(z.number().int().min(0).max(1))).openapi({
+      example: [
+        [1, 1, 0, 0],
+        [0, 1, 1, 0],
+        [0, 0, 0, 0],
+      ],
+      description: 'Matrice 2D della sala (1 = occupato, 0 = libero)',
+    }),
+  }),
+);
+
 // ==========================================
-// 3. MAIN ROUTE VALIDATION SCHEMA
+// 3. ROUTE VALIDATION SCHEMAS
 // ==========================================
 
 export const getStatisticsSchema = z.object({
   query: statisticsQuerySchema,
+});
+
+export const getProiezioneMatriceSchema = z.object({
+  params: proiezioneIdParamSchema,
 });
 
 // ==========================================
@@ -76,6 +93,4 @@ export const getStatisticsSchema = z.object({
 
 export type StatisticsQueryInput = z.infer<typeof statisticsQuerySchema>;
 export type StatisticsReportResponse = z.infer<typeof StatisticsReportResponseSchema>;
-export type SalaOccupancyReport = StatisticsReportResponse[number];
-export type ProiezioneOccupancyReport = SalaOccupancyReport['proiezioni'][number];
-export type GetStatisticsInput = z.infer<typeof getStatisticsSchema>;
+export type ProiezioneMatriceResponse = z.infer<typeof ProiezioneMatriceResponseSchema>;
