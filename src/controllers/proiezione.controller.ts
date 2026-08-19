@@ -4,17 +4,17 @@ import type { Request, Response } from 'express';
 export class ProiezioneController {
   constructor(private readonly proiezioneService: ProiezioneService) {}
 
-  create = async (req: Request, res: Response) => {
+  create = async (req: Request, res: Response): Promise<void> => {
     const proiezione = await this.proiezioneService.createProiezione(res.locals.body);
     res.status(201).json({ data: proiezione });
   };
 
-  getById = async (req: Request, res: Response) => {
+  getById = async (req: Request, res: Response): Promise<void> => {
     const proiezione = await this.proiezioneService.findProiezioneById(res.locals.params.id);
     res.status(200).json({ data: proiezione });
   };
 
-  update = async (req: Request, res: Response) => {
+  update = async (req: Request, res: Response): Promise<void> => {
     const updatedProiezione = await this.proiezioneService.updateProiezione(
       res.locals.params.id,
       res.locals.body,
@@ -22,14 +22,12 @@ export class ProiezioneController {
     res.status(200).json({ data: updatedProiezione });
   };
 
-  delete = async (req: Request, res: Response) => {
-    await this.proiezioneService.updateProiezioneExistence(res.locals.params.id, {
-      eliminata: true,
-    });
+  delete = async (req: Request, res: Response): Promise<void> => {
+    await this.proiezioneService.updateProiezioneExistence(res.locals.params.id);
     res.status(204).send();
   };
 
-  getAll = async (req: Request, res: Response) => {
+  getAll = async (req: Request, res: Response): Promise<void> => {
     const { page, limit } = res.locals.query;
     const proiezioni = await this.proiezioneService.findAll(page, limit);
     res.status(200).json({ data: proiezioni });

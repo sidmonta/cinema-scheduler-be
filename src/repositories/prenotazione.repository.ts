@@ -1,4 +1,4 @@
-import { and, count, eq, sql } from 'drizzle-orm';
+import { and, count, eq } from 'drizzle-orm';
 import { db } from '../config/drizzle.config.connection.js';
 import { prenotazione } from '../db/schema.js';
 
@@ -10,9 +10,20 @@ export interface CreatePrenotazioneRepoInput {
   stato?: 'CONFIRMED' | 'PENDING' | 'CANCELLED';
 }
 
+export interface PrenotazioniPaginate {
+  data: Array<typeof prenotazione.$inferSelect>;
+  totalRecords: number;
+}
+
+export type CreateConConcorrenzaResult =
+  | { success: true; data: typeof prenotazione.$inferSelect }
+  | { success: false; reason: 'POSTO_OCCUPATO' | 'CONCORRENZA_POSTO_OCCUPATO' };
+
 export class PrenotazioneRepository {
   // 1. Creazione con gestione della concorrenza (Race Condition)
-  async createConConcorrenza(data: CreatePrenotazioneRepoInput) {
+  async createConConcorrenza(
+    data: CreatePrenotazioneRepoInput,
+  ): Promise<CreateConConcorrenzaResult> {
     return await db.transaction(async (tx) => {
       // 1. Verifichiamo se il posto è libero
       const [existing] = await tx
@@ -44,6 +55,7 @@ export class PrenotazioneRepository {
             stato: data.stato ?? 'PENDING',
           })
           .returning();
+
         return { success: true, data: nuovaPrenotazione };
       } catch (error) {
         const pgError = error as { code?: string };
@@ -56,7 +68,11 @@ export class PrenotazioneRepository {
   }
 
   // 2. Recupero lista prenotazioni di un utente specifico (con paginazione)
-  async findByUtenteId(utenteId: string, page: number = 1, limit: number = 10) {
+  async findByUtenteId(
+    utenteId: string,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<PrenotazioniPaginate> {
     const offset = (page - 1) * limit;
 
     const data = await db
@@ -66,19 +82,22 @@ export class PrenotazioneRepository {
       .limit(limit)
       .offset(offset);
 
-    const [{ count }] = await db
-      .select({ count: sql<number>`count(*)` })
+    const [{ totale }] = await db
+      .select({ totale: count() })
       .from(prenotazione)
       .where(and(eq(prenotazione.utente_id, utenteId), eq(prenotazione.eliminata, false)));
 
     return {
       data,
-      totalRecords: Number(count),
+      totalRecords: Number(totale),
     };
   }
 
-  // 3. Recupero singola prenotazione per ID (verificando che appartenga all'utente)
-  async findByIdAndUtenteId(id: string, utenteId: string) {
+  // 3. Recupero singola prenotazione per ID
+  async findByIdAndUtenteId(
+    id: string,
+    utenteId: string,
+  ): Promise<typeof prenotazione.$inferSelect | null> {
     const [result] = await db
       .select()
       .from(prenotazione)
@@ -95,7 +114,7 @@ export class PrenotazioneRepository {
   }
 
   // 4. Annullamento / Eliminazione Logica (Soft Delete)
-  async softDelete(id: string, utenteId: string) {
+  async softDelete(id: string, utenteId: string): Promise<typeof prenotazione.$inferSelect | null> {
     const [updated] = await db
       .update(prenotazione)
       .set({
@@ -119,12 +138,7 @@ export class PrenotazioneRepository {
     const [{ totale }] = await db
       .select({ totale: count() })
       .from(prenotazione)
-      .where(
-        and(
-          eq(prenotazione.proiezione_id, proiezioneId),
-          eq(prenotazione.eliminata, false), // Ignora le prenotazioni cancellate
-        ),
-      );
+      .where(and(eq(prenotazione.proiezione_id, proiezioneId), eq(prenotazione.eliminata, false)));
 
     return Number(totale);
   }

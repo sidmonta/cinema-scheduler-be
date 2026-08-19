@@ -66,6 +66,10 @@ export const createPrenotazioneSchema = z.object({
   body: createPrenotazioneBodySchema,
 });
 
+export const deletePrenotazioneSchema = z.object({
+  params: prenotazioneIdParamSchema,
+});
+
 // --- 6. TIPI INFERITI ---
 export type CreatePrenotazioneInput = z.infer<typeof createPrenotazioneBodySchema>;
 export type PrenotazionePaginationQueryInput = z.infer<typeof prenotazionePaginationQuerySchema>;

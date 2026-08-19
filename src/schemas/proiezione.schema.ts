@@ -97,9 +97,8 @@ export const updateProiezioneSchema = z.object({
   body: updateProiezioneBodySchema,
 });
 
-export const updateProiezioneExistenceSchema = z.object({
+export const deletProiezioneSchema = z.object({
   params: proiezioneIdParamSchema,
-  body: updateProiezioneExistenceBodySchema,
 });
 
 // -----------------------------------------------------------------------------
@@ -108,7 +107,6 @@ export const updateProiezioneExistenceSchema = z.object({
 
 export type CreateProiezioneInput = z.infer<typeof baseCreateProiezioneSchema>;
 export type UpdateProiezioneInput = z.infer<typeof updateProiezioneBodySchema>;
-export type UpdateProiezioneExistenceInput = z.infer<typeof updateProiezioneExistenceBodySchema>;
 export type ProiezionePaginationQueryInput = z.infer<typeof proiezionePaginationQuerySchema>;
 export type ProiezioneIdParamInput = z.infer<typeof proiezioneIdParamSchema>;
 export type PalinsestoQueryInput = z.infer<typeof palinsestoParamSchema>;

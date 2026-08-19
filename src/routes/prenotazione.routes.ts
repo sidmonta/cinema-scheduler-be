@@ -3,6 +3,7 @@ import { authenticate } from '../middlewares/auth.middleware.js';
 import { validate } from '../middlewares/validate.middleware.js';
 import {
   createPrenotazioneSchema,
+  deletePrenotazioneSchema,
   getPrenotazioneByIdSchema,
 } from '../schemas/prenotazione.schema.js';
 import { PrenotazioneRepository } from '../repositories/prenotazione.repository.js';
@@ -28,6 +29,6 @@ router.get(
   controller.getPrenotazioniByUser,
 );
 router.get('/:id', authenticate, validate(getPrenotazioneByIdSchema), controller.getById);
-router.delete('/:id', authenticate, validate(getPrenotazioneByIdSchema), controller.delete);
+router.delete('/:id', authenticate, validate(deletePrenotazioneSchema), controller.delete);
 
 export default router;

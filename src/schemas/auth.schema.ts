@@ -22,11 +22,11 @@ export const registerBodySchema = registry.register(
 );
 
 export const loginBodySchema = z.object({
-  email: z.string().email('Email non valida').openapi({ example: 'mario.rossi@example.com' }),
+  email: z.string().email('Email non valida').openapi({ example: 'alessio.petrosino@example.com' }),
   password: z
     .string()
     .min(8, 'La password deve contenere almeno 8 caratteri')
-    .openapi({ example: 'PasswordSegreta123!' }),
+    .openapi({ example: 'password' }),
 });
 
 export const registerSchema = z.object({

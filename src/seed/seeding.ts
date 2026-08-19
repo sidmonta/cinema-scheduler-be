@@ -5,7 +5,7 @@ import { sql } from 'drizzle-orm';
 import { cinema, sala, film, proiezione, utente, prenotazione, posto } from '../db/schema.js';
 import { db } from '../config/drizzle.config.connection.js';
 
-function readCsv<T = any>(filePath: string): Promise<T[]> {
+function readCsv<T = Record<string, unknown>>(filePath: string): Promise<T[]> {
   return new Promise((resolve, reject) => {
     const results: T[] = [];
     if (!fs.existsSync(filePath)) {
@@ -13,9 +13,9 @@ function readCsv<T = any>(filePath: string): Promise<T[]> {
     }
     fs.createReadStream(filePath)
       .pipe(csv())
-      .on('data', (data) => results.push(data))
+      .on('data', (data: T) => results.push(data))
       .on('end', () => resolve(results))
-      .on('error', (err) => reject(err));
+      .on('error', (err: Error) => reject(err));
   });
 }
 
@@ -27,7 +27,7 @@ function chunkArray<T>(array: T[], size: number): T[][] {
   return result;
 }
 
-export async function runCsvSeed() {
+export async function runCsvSeed(): Promise<void> {
   console.log('1. Pulizia tabelle...');
   await db.execute(
     sql`TRUNCATE TABLE posto, prenotazione, proiezione, utente, film, sala, cinema RESTART IDENTITY CASCADE;`,
@@ -44,7 +44,7 @@ export async function runCsvSeed() {
   const prenotazioneMap = new Map<string, string>();
 
   // --- A. CINEMA ---
-  const cinemaData = await readCsv(path.join(initDataDir, 'cinema.csv'));
+  const cinemaData = await readCsv<Record<string, string>>(path.join(initDataDir, 'cinema.csv'));
   for (const row of cinemaData) {
     const [inserted] = await db
       .insert(cinema)
@@ -61,7 +61,7 @@ export async function runCsvSeed() {
   console.log(`Inseriti ${cinemaData.length} record in 'cinema'`);
 
   // --- B. SALE ---
-  const saleData = await readCsv(path.join(initDataDir, 'sale.csv'));
+  const saleData = await readCsv<Record<string, string>>(path.join(initDataDir, 'sale.csv'));
   for (const row of saleData) {
     const [inserted] = await db
       .insert(sala)
@@ -78,7 +78,7 @@ export async function runCsvSeed() {
   console.log(`Inseriti ${saleData.length} record in 'sala'`);
 
   // --- C. FILM ---
-  const filmData = await readCsv(path.join(initDataDir, 'film.csv'));
+  const filmData = await readCsv<Record<string, string>>(path.join(initDataDir, 'film.csv'));
   for (const row of filmData) {
     const [inserted] = await db
       .insert(film)
@@ -86,7 +86,7 @@ export async function runCsvSeed() {
         titolo: row.titolo,
         durata_minuti: Number(row.durata_minuti ?? row.durataMinuti),
         genere: row.genere,
-        classificazione: row.classificazione,
+        classificazione: row.classificazione as 'T' | '14+' | '18+',
       })
       .returning();
 
@@ -95,7 +95,7 @@ export async function runCsvSeed() {
   console.log(`Inseriti ${filmData.length} record in 'film'`);
 
   // --- D. UTENTI ---
-  const utenteData = await readCsv(path.join(initDataDir, 'utenti.csv'));
+  const utenteData = await readCsv<Record<string, string>>(path.join(initDataDir, 'utenti.csv'));
   for (const row of utenteData) {
     const [inserted] = await db
       .insert(utente)
@@ -104,7 +104,7 @@ export async function runCsvSeed() {
         cognome: row.cognome,
         email: row.email,
         password: row.password,
-        ruolo: row.ruolo,
+        ruolo: row.ruolo as 'ADMIN' | 'USER',
       })
       .returning();
 
@@ -113,9 +113,10 @@ export async function runCsvSeed() {
   console.log(`Inseriti ${utenteData.length} record in 'utente'`);
 
   // --- E. PROIEZIONI ---
-  const proiezioneData = await readCsv(path.join(initDataDir, 'proiezioni_v2.csv'));
+  const proiezioneData = await readCsv<Record<string, string>>(
+    path.join(initDataDir, 'proiezioni_v2.csv'),
+  );
 
-  // Manteniamo anche il vecchio ID CSV per popolare la Map dopo l'inserimento
   const proiezioniToInsert = proiezioneData
     .map((row) => {
       const filmId = filmMap.get(String(row.film_id ?? row.filmId));
@@ -132,20 +133,19 @@ export async function runCsvSeed() {
         },
       };
     })
-    .filter(Boolean);
+    .filter((item): item is NonNullable<typeof item> => item !== undefined);
 
   const proiezioneChunks = chunkArray(proiezioniToInsert, 1000);
   let totalProiezioniInserted = 0;
 
   for (const chunk of proiezioneChunks) {
-    const valuesToInsert = chunk.map((c) => c!.data);
+    const valuesToInsert = chunk.map((c) => c.data);
     const insertedRecords = await db
       .insert(proiezione)
       .values(valuesToInsert)
       .onConflictDoNothing()
       .returning();
 
-    // MAPPIAMO L'ID CSV CON L'UUID GENERATO DAL DB
     insertedRecords.forEach((inserted, index) => {
       const originalCsvId = chunk[index]!.csvId;
       proiezioneMap.set(originalCsvId, inserted.id);
@@ -156,7 +156,9 @@ export async function runCsvSeed() {
   console.log(`Inseriti ${totalProiezioniInserted} record in 'proiezione'`);
 
   // --- F. PRENOTAZIONI ---
-  const prenotazioneData = await readCsv(path.join(initDataDir, 'prenotazioni_v2.csv'));
+  const prenotazioneData = await readCsv<Record<string, string>>(
+    path.join(initDataDir, 'prenotazioni_v2.csv'),
+  );
 
   const prenotazioniToInsert = prenotazioneData
     .map((row) => {
@@ -172,25 +174,23 @@ export async function runCsvSeed() {
           proiezione_id: proiezioneId,
           riga: Number(row.riga),
           colonna: Number(row.colonna),
-          stato: row.stato ?? 'CONFIRMED',
+          stato: (row.stato as 'CONFIRMED' | 'PENDING' | 'CANCELLED') || 'CONFIRMED',
         },
       };
     })
-    .filter(Boolean);
+    .filter((item): item is NonNullable<typeof item> => item !== undefined);
 
-  // Usiamo un chunk size di 2000 per bilanciare velocità e limite parametri Postgres
   const prenotazioneChunks = chunkArray(prenotazioniToInsert, 2000);
   let totalPrenotazioniInserted = 0;
 
   for (const chunk of prenotazioneChunks) {
-    const valuesToInsert = chunk.map((c) => c!.data);
+    const valuesToInsert = chunk.map((c) => c.data);
     const insertedRecords = await db
       .insert(prenotazione)
       .values(valuesToInsert)
       .onConflictDoNothing()
       .returning();
 
-    // MAPPIAMO L'ID CSV CON L'UUID GENERATO DAL DB (se ti serve per 'posto')
     insertedRecords.forEach((inserted, index) => {
       const originalCsvId = chunk[index]!.csvId;
       prenotazioneMap.set(originalCsvId, inserted.id);
@@ -206,14 +206,14 @@ export async function runCsvSeed() {
   // --- G. POSTI ---
   const postoFilePath = path.join(initDataDir, 'posto.csv');
   if (fs.existsSync(postoFilePath)) {
-    const postoData = await readCsv(postoFilePath);
+    const postoData = await readCsv<Record<string, string>>(postoFilePath);
     const postiToInsert = postoData
       .map((row) => ({
         prenotazione_id: prenotazioneMap.get(String(row.prenotazione_id ?? row.prenotazioneId))!,
         riga: Number(row.riga),
         colonna: Number(row.colonna),
       }))
-      .filter((p) => p.prenotazione_id);
+      .filter((p) => Boolean(p.prenotazione_id));
 
     const postoChunks = chunkArray(postiToInsert, 2000);
     for (const chunk of postoChunks) {

@@ -11,7 +11,7 @@ echo "Running migrations..."
 npx drizzle-kit migrate --config=drizzle.config.ts
 
 echo "Seeding database..."
-npx tsx scripts/seed.ts
+npm run db:seed-prod
 
 echo "Starting development server..."
 exec npx tsx watch src/app.ts

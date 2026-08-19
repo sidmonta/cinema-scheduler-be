@@ -8,9 +8,9 @@ import { z } from 'zod';
 // Estende Zod aggiungendo il metodo .openapi() ai tipi Zod
 extendZodWithOpenApi(z);
 
-export const registry = new OpenAPIRegistry();
+export const registry: OpenAPIRegistry = new OpenAPIRegistry();
 
-export function generateOpenAPIDocument() {
+export function generateOpenAPIDocument(): ReturnType<OpenApiGeneratorV31['generateDocument']> {
   const generator = new OpenApiGeneratorV31(registry.definitions);
 
   return generator.generateDocument({

@@ -1,6 +1,6 @@
 import { runCsvSeed } from './seeding.js';
 
-async function run() {
+async function run(): Promise<void> {
   try {
     await runCsvSeed();
     process.exit(0);

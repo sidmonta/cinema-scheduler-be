@@ -56,7 +56,7 @@ export const updateFilmBodySchema = baseCreateFilmSchema
     message: 'Fornire almeno un campo da aggiornare',
   });
 
-// Soft Delete / Ripristino Body
+// Soft Delete / Ripristino Body (PATCH /films/:id/existence)
 export const updateFilmExistenceBodySchema = z.object({
   eliminata: z.boolean(),
 });
@@ -94,6 +94,11 @@ export const updateFilmSchema = z.object({
 export const updateFilmExistenceSchema = z.object({
   params: filmIdParamSchema,
   body: updateFilmExistenceBodySchema,
+});
+
+// DELETE /films/:id
+export const deleteFilmSchema = z.object({
+  params: filmIdParamSchema,
 });
 
 // --- 5. TIPI INFERITI ---

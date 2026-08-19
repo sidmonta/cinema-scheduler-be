@@ -3,18 +3,19 @@ import type { FilmRepository } from '../repositories/film.repository.js';
 import type {
   CreateFilmInput,
   FilmPaginationQuery,
-  UpdateFilmExistenceInput,
   UpdateFilmInput,
 } from '../schemas/film.schema.js';
 
 export class FilmService {
   constructor(private readonly filmRepository: FilmRepository) {}
 
-  async createFilm(input: CreateFilmInput) {
+  async createFilm(input: CreateFilmInput): Promise<Awaited<ReturnType<FilmRepository['create']>>> {
     return await this.filmRepository.create(input);
   }
 
-  async getFilmById(id: string) {
+  async getFilmById(
+    id: string,
+  ): Promise<NonNullable<Awaited<ReturnType<FilmRepository['findById']>>>> {
     const film = await this.filmRepository.findById(id);
     if (!film) {
       throw new NotFoundError(`Film con ID '${id}' non trovato`);
@@ -22,20 +23,32 @@ export class FilmService {
     return film;
   }
 
-  async getAllFilms(query: FilmPaginationQuery) {
+  async getAllFilms(
+    query: FilmPaginationQuery,
+  ): Promise<Awaited<ReturnType<FilmRepository['findAll']>>> {
     const { page, limit } = query;
     return await this.filmRepository.findAll(page, limit);
   }
 
-  async updateFilm(id: string, input: UpdateFilmInput) {
+  async updateFilm(
+    id: string,
+    input: UpdateFilmInput,
+  ): Promise<Awaited<ReturnType<FilmRepository['update']>>> {
     // Verifica prima l'esistenza
     await this.getFilmById(id);
     return await this.filmRepository.update(id, input);
   }
 
-  async deleteFilm(id: string, input: UpdateFilmExistenceInput) {
+  async updateFilmExistence(
+    id: string,
+  ): Promise<Awaited<ReturnType<FilmRepository['updateExistence']>>> {
     // Verifica prima l'esistenza
     await this.getFilmById(id);
-    await this.filmRepository.updateExistence(id, input);
+    return await this.filmRepository.updateExistence(id);
+  }
+
+  async deleteFilm(id: string): Promise<Awaited<ReturnType<FilmRepository['updateExistence']>>> {
+    await this.getFilmById(id);
+    return await this.filmRepository.updateExistence(id);
   }
 }

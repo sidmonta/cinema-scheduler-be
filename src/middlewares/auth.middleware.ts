@@ -1,10 +1,14 @@
-import type { NextFunction, Request, Response } from 'express';
+import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import type { JwtPayload, RuoloType } from '../config/jwt.config.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secrettokenjwt';
 
-export const authenticate = (req: Request, res: Response, next: NextFunction) => {
+export const authenticate: RequestHandler = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void | Response => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader?.startsWith('Bearer ')) {
@@ -28,8 +32,8 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
   }
 };
 
-export const authorize = (...allowedRoles: RuoloType[]) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+export const authorize = (...allowedRoles: RuoloType[]): RequestHandler => {
+  return (req: Request, res: Response, next: NextFunction): void | Response => {
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -46,7 +50,6 @@ export const authorize = (...allowedRoles: RuoloType[]) => {
         },
       });
     }
-
     next();
   };
 };
