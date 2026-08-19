@@ -9,8 +9,40 @@ export interface CreateProiezioneRepoInput {
   data_ora_fine: Date;
 }
 
+export interface ProiezioniPaginate {
+  data: Array<typeof proiezione.$inferSelect>;
+  meta: {
+    page: number;
+    limit: number;
+    totalRecords: number;
+    totalPages: number;
+  };
+}
+
+export interface ProiezioneDettaglio {
+  proiezioneId: string;
+  dataOraInizio: Date;
+  dataOraFine: Date;
+  film: {
+    id: string;
+    titolo: string;
+    durata: number;
+    genere: string;
+    classificazione: string;
+  };
+  sala: {
+    id: string;
+    nome: string;
+  };
+}
+
+export interface ProiezioneCapacita {
+  proiezioneId: string;
+  capacita: number | null;
+}
+
 export class ProiezioneRepository {
-  async create(data: CreateProiezioneRepoInput) {
+  async create(data: CreateProiezioneRepoInput): Promise<typeof proiezione.$inferSelect> {
     const [newProiezione] = await db
       .insert(proiezione)
       .values({
@@ -24,13 +56,12 @@ export class ProiezioneRepository {
     return newProiezione;
   }
 
-  async findById(id: string) {
+  async findById(id: string): Promise<typeof proiezione.$inferSelect | null> {
     const [foundProiezione] = await db.select().from(proiezione).where(eq(proiezione.id, id));
-
     return foundProiezione || null;
   }
 
-  async findByData(data: string) {
+  async findByData(data: string): Promise<ProiezioneDettaglio[]> {
     const dayStart = new Date(`${data}T00:00:00.000Z`);
     const dayEnd = new Date(`${data}T23:59:59.999Z`);
 
@@ -67,7 +98,7 @@ export class ProiezioneRepository {
     sala_id: string,
     inizio: Date,
     fine: Date,
-    excludeProiezioneId?: string, // Utile in caso di UPDATE per escludere la proiezione stessa
+    excludeProiezioneId?: string,
   ): Promise<boolean> {
     const conditions = [
       eq(proiezione.sala_id, sala_id),
@@ -89,7 +120,7 @@ export class ProiezioneRepository {
     return !!found;
   }
 
-  async findAll(page: number, limit: number) {
+  async findAll(page: number, limit: number): Promise<ProiezioniPaginate> {
     const offset = (page - 1) * limit;
     const data = await db
       .select()
@@ -103,18 +134,23 @@ export class ProiezioneRepository {
       .from(proiezione)
       .where(eq(proiezione.eliminata, false));
 
+    const totalRecords = Number(total);
+
     return {
       data,
       meta: {
         page,
         limit,
-        totalRecords: Number(total),
-        totalPages: Math.ceil(Number(total) / limit),
+        totalRecords,
+        totalPages: Math.ceil(totalRecords / limit),
       },
     };
   }
 
-  async update(id: string, data: Partial<CreateProiezioneRepoInput>) {
+  async update(
+    id: string,
+    data: Partial<CreateProiezioneRepoInput>,
+  ): Promise<typeof proiezione.$inferSelect | null> {
     const [updatedProiezione] = await db
       .update(proiezione)
       .set({ ...data, aggiornata_il: new Date() })
@@ -124,17 +160,17 @@ export class ProiezioneRepository {
     return updatedProiezione || null;
   }
 
-  async updateExistence(id: string, data: { eliminata: boolean }) {
+  async updateExistence(id: string): Promise<typeof proiezione.$inferSelect | null> {
     const [updatedProiezione] = await db
       .update(proiezione)
-      .set({ ...data, aggiornata_il: new Date() })
+      .set({ aggiornata_il: new Date(), eliminata: true })
       .where(eq(proiezione.id, id))
       .returning();
 
     return updatedProiezione || null;
   }
 
-  async findProiezioneConCapacita(proiezioneId: string) {
+  async findProiezioneConCapacita(proiezioneId: string): Promise<ProiezioneCapacita | null> {
     const [result] = await db
       .select({
         proiezioneId: proiezione.id,

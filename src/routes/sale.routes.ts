@@ -5,6 +5,7 @@ import {
   saleIdParamSchema,
   updateSaleSchema,
   salePaginationQuerySchema,
+  deleteSaleSchema,
 } from '../schemas/sale.schema.js';
 import { createSaleSchema } from '../schemas/sale.schema.js';
 import { SaleService } from '../services/sale.service.js';
@@ -37,7 +38,7 @@ router.delete(
   '/:id',
   authenticate,
   authorize('ADMIN'),
-  validate(saleIdParamSchema),
+  validate(deleteSaleSchema),
   saleController.delete,
 );
 

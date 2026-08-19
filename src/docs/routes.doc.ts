@@ -102,7 +102,7 @@ registry.registerPath({
   tags: ['Film'],
   summary: 'Aggiorna parzialmente un film',
   request: {
-    params: updateFilmSchema.shape.params,
+    params: filmIdParamSchema,
     body: {
       content: { 'application/json': { schema: updateFilmSchema.shape.body } },
     },
@@ -118,12 +118,12 @@ registry.registerPath({
   },
 });
 
-// 5. DELETE /films/{id}
+// 5. DELETE /films/{id} (Soft Delete Standard)
 registry.registerPath({
   method: 'delete',
   path: '/films/{id}',
   tags: ['Film'],
-  summary: 'Elimina un film',
+  summary: 'Elimina un film (soft delete)',
   request: { params: filmIdParamSchema },
   responses: {
     204: { description: 'Film eliminato con successo' },
@@ -516,6 +516,7 @@ registry.registerPath({
   path: '/statistiche',
   tags: ['Statistiche'],
   summary: 'Ottieni report occupazione mensile per tutte le proiezioni',
+  security: [{ bearerAuth: [] }],
   request: {
     query: statisticsQuerySchema,
   },
@@ -541,6 +542,7 @@ registry.registerPath({
   path: '/statistiche/proiezioni/{id}/matrice',
   tags: ['Statistiche'],
   summary: 'Ottieni la matrice 2D dei posti per una singola proiezione',
+  security: [{ bearerAuth: [] }],
   request: {
     params: proiezioneIdParamSchema,
   },

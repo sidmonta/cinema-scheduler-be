@@ -1,14 +1,11 @@
-import { ok, err } from '../config/result.type.js';
-import { ConflictError, NotFoundError } from '../config/app-error.js';
-import { FilmRepository } from '../repositories/film.repository.js';
-import {
-  ProiezioneRepository,
-  type CreateProiezioneRepoInput,
-} from '../repositories/proiezione.repository.js';
+import { ok, err, type Result } from '../config/result.type.js';
+import { ConflictError, NotFoundError, type AppError } from '../config/app-error.js';
+import type { FilmRepository } from '../repositories/film.repository.js';
 import type {
-  CreateProiezioneInput,
-  UpdateProiezioneExistenceInput,
-} from '../schemas/proiezione.schema.js';
+  ProiezioneRepository,
+  CreateProiezioneRepoInput,
+} from '../repositories/proiezione.repository.js';
+import type { CreateProiezioneInput } from '../schemas/proiezione.schema.js';
 import {
   buildPalinsestoCacheKey,
   invalidatePalinsestoCache,
@@ -16,18 +13,29 @@ import {
 } from '../utils/cache.utils.js';
 import { redisClient } from '../config/redis.config.js';
 import type { SaleRepository } from '../repositories/sale.repository.js';
+import type { UtenteRepository } from '../repositories/utente.repository.js';
+import type { Email } from '../utils/email.utils.js';
+
+type ProiezioneEntity = NonNullable<Awaited<ReturnType<ProiezioneRepository['findById']>>>;
+
+export interface PalinsestoResponse {
+  source: 'cache' | 'db';
+  proiezioni: Awaited<ReturnType<ProiezioneRepository['findByData']>>;
+}
 
 export class ProiezioneService {
   constructor(
     private readonly proiezioneRepository: ProiezioneRepository,
     private readonly filmRepository: FilmRepository,
     private readonly salaRepository: SaleRepository,
+    private readonly utenteRepository: UtenteRepository,
+    private readonly email: Email,
   ) {}
 
   private static readonly MILLISECONDS_IN_A_MINUTE = 60000;
   private static readonly TEMPO_PULIZIA_MINUTI = 15;
 
-  async createProiezione(data: CreateProiezioneInput) {
+  async createProiezione(data: CreateProiezioneInput): Promise<Result<ProiezioneEntity, AppError>> {
     // 1. Il film deve esistere
     const film = await this.filmRepository.findById(data.film_id);
     if (!film) {
@@ -73,7 +81,7 @@ export class ProiezioneService {
     return ok(nuovaProiezione);
   }
 
-  async findProiezioneById(id: string) {
+  async findProiezioneById(id: string): Promise<Result<ProiezioneEntity, AppError>> {
     const proiezione = await this.proiezioneRepository.findById(id);
     if (!proiezione) {
       return err(new NotFoundError(`Proiezione con ID '${id}' non trovata`));
@@ -81,7 +89,10 @@ export class ProiezioneService {
     return ok(proiezione);
   }
 
-  async updateProiezione(id: string, data: Partial<CreateProiezioneInput>) {
+  async updateProiezione(
+    id: string,
+    data: Partial<CreateProiezioneInput>,
+  ): Promise<Result<Awaited<ReturnType<ProiezioneRepository['update']>>, AppError>> {
     // 1. Verifichiamo l'esistenza della proiezione
     const proiezioneResult = await this.findProiezioneById(id);
     if (!proiezioneResult.success) {
@@ -161,28 +172,46 @@ export class ProiezioneService {
     return ok(proiezioneAggiornata);
   }
 
-  async updateProiezioneExistence(id: string, input: UpdateProiezioneExistenceInput) {
+  async updateProiezioneExistence(
+    id: string,
+  ): Promise<Result<Awaited<ReturnType<ProiezioneRepository['updateExistence']>>, AppError>> {
     const proiezioneResult = await this.findProiezioneById(id);
     if (!proiezioneResult.success) {
       return proiezioneResult;
     }
-
-    const updated = await this.proiezioneRepository.updateExistence(id, input);
-
+    const updated = await this.proiezioneRepository.updateExistence(id);
     const dataFormatted = new Date(proiezioneResult.data.data_ora_inizio)
       .toISOString()
       .split('T')[0];
     await invalidatePalinsestoCache(dataFormatted);
+    const clientiPaginati = await this.utenteRepository.findAllPerProiezione(1, 10, id);
+    const clienti = clientiPaginati.data;
+
+    // SEQUENZIALE
+    const startSeq = Date.now();
+    await this.email.notificaSequenziale(clienti, id);
+    const timeSeq = Date.now() - startSeq;
+
+    // PARALLELO
+    const startPar = Date.now();
+    await this.email.notificaParallelo(clienti, id);
+    const timePar = Date.now() - startPar;
+
+    console.log(` SEQUENZIALE: ${timeSeq} ms`);
+    console.log(` PARALLELO:   ${timePar} ms`);
 
     return ok(updated);
   }
 
-  async findAll(page: number, limit: number) {
+  async findAll(
+    page: number,
+    limit: number,
+  ): Promise<Result<Awaited<ReturnType<ProiezioneRepository['findAll']>>, AppError>> {
     const result = await this.proiezioneRepository.findAll(page, limit);
     return ok(result);
   }
 
-  async getPalinsestoByDate(dataStr: string) {
+  async getPalinsestoByDate(dataStr: string): Promise<Result<PalinsestoResponse, AppError>> {
     const dateFormatted = dataStr.includes('T') ? dataStr.split('T')[0] : dataStr;
     const cacheKey = buildPalinsestoCacheKey(dateFormatted);
 

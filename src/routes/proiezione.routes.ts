@@ -6,6 +6,7 @@ import { FilmRepository } from '../repositories/film.repository.js';
 import { validate } from '../middlewares/validate.middleware.js';
 import {
   createProiezioneSchema,
+  deletProiezioneSchema,
   getPalinsestoSchema,
   proiezioneIdParamSchema,
   proiezionePaginationQuerySchema,
@@ -13,14 +14,20 @@ import {
 } from '../schemas/proiezione.schema.js';
 import { SaleRepository } from '../repositories/sale.repository.js';
 import { authenticate, authorize } from '../middlewares/auth.middleware.js';
+import { Email } from '../utils/email.utils.js';
+import { UtenteRepository } from '../repositories/utente.repository.js';
 
 const proiezioneRepository = new ProiezioneRepository();
 const filmRepository = new FilmRepository();
 const salaRepository = new SaleRepository();
+const utenteRepository = new UtenteRepository();
+const email = new Email();
 const proiezioneService = new ProiezioneService(
   proiezioneRepository,
   filmRepository,
   salaRepository,
+  utenteRepository,
+  email,
 ); // Passa anche il FilmRepository al ProiezioneService
 const proiezioneController = new ProiezioneController(proiezioneService);
 
@@ -46,7 +53,7 @@ router.delete(
   '/:id',
   authenticate,
   authorize('ADMIN'),
-  validate(proiezioneIdParamSchema),
+  validate(deletProiezioneSchema),
   proiezioneController.delete,
 );
 router.get(

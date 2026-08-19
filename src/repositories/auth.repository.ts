@@ -4,13 +4,12 @@ import { utente } from '../db/schema.js';
 import type { RegisterInput } from '../schemas/auth.schema.js';
 
 export class AuthRepository {
-  async findByEmail(email: string) {
+  async findByEmail(email: string): Promise<typeof utente.$inferSelect> {
     const [found] = await db.select().from(utente).where(eq(utente.email, email));
-
     return found || null;
   }
 
-  async create(data: RegisterInput) {
+  async create(data: RegisterInput): Promise<typeof utente.$inferInsert> {
     const [nuovoUtente] = await db
       .insert(utente)
       .values({
@@ -21,7 +20,6 @@ export class AuthRepository {
         ruolo: data.ruolo || 'USER',
       })
       .returning();
-
     return nuovoUtente;
   }
 }

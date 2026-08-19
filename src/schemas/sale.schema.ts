@@ -72,13 +72,11 @@ export const updateSaleSchema = z.object({
   body: updateSaleBodySchema,
 });
 
-export const updateSaleExistenceSchema = z.object({
+export const deleteSaleSchema = z.object({
   params: saleIdParamSchema,
-  body: updateSaleExistenceBodySchema,
 });
 
 export type CreateSaleInput = z.infer<typeof createSaleBodySchema>;
 export type UpdateSaleInput = z.infer<typeof updateSaleBodySchema>;
-export type UpdateSaleExistenceInput = z.infer<typeof updateSaleExistenceBodySchema>;
 export type SalePaginationQuery = z.infer<typeof salePaginationQuerySchema>;
 export type SaleIdParam = z.infer<typeof saleIdParamSchema>;

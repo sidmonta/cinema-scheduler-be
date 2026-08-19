@@ -1,33 +1,32 @@
-import type { FilmPaginationQuery } from '../schemas/film.schema.js';
 import type { FilmService } from '../services/film.service.js';
 import type { Request, Response } from 'express';
 
 export class FilmController {
   constructor(private readonly filmService: FilmService) {}
 
-  create = async (req: Request, res: Response) => {
-    const film = await this.filmService.createFilm(req.body);
+  create = async (req: Request, res: Response): Promise<void> => {
+    const film = await this.filmService.createFilm(res.locals.body);
     res.status(201).json({ data: film });
   };
 
-  getById = async (req: Request<{ id: string }>, res: Response) => {
-    const film = await this.filmService.getFilmById(req.params.id);
+  getById = async (req: Request, res: Response): Promise<void> => {
+    const film = await this.filmService.getFilmById(res.locals.params.id);
     res.status(200).json({ data: film });
   };
 
-  getAll = async (req: Request, res: Response) => {
-    const query = req.query as unknown as FilmPaginationQuery;
-    const result = await this.filmService.getAllFilms(query);
+  getAll = async (req: Request, res: Response): Promise<void> => {
+    const { page, limit } = res.locals.query;
+    const result = await this.filmService.getAllFilms({ page, limit });
     res.status(200).json(result);
   };
 
-  update = async (req: Request, res: Response) => {
-    const updatedFilm = await this.filmService.updateFilm(req.params.id as string, req.body);
+  update = async (req: Request, res: Response): Promise<void> => {
+    const updatedFilm = await this.filmService.updateFilm(res.locals.params.id, res.locals.body);
     res.status(200).json({ data: updatedFilm });
   };
 
-  delete = async (req: Request, res: Response) => {
-    await this.filmService.deleteFilm(req.params.id as string, req.body);
+  delete = async (req: Request, res: Response): Promise<void> => {
+    await this.filmService.deleteFilm(res.locals.params.id);
     res.status(204).send();
   };
 }

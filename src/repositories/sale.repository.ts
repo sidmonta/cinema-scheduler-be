@@ -2,10 +2,19 @@ import { eq, count } from 'drizzle-orm';
 import { db } from '../config/drizzle.config.connection.js';
 import { sala } from '../db/schema.js';
 import type { CreateSaleInput, UpdateSaleInput } from '../schemas/sale.schema.js';
-import { ok } from '../config/result.type.js';
+
+export interface SalePaginate {
+  data: Array<typeof sala.$inferSelect>;
+  meta: {
+    page: number;
+    limit: number;
+    totalRecords: number;
+    totalPages: number;
+  };
+}
 
 export class SaleRepository {
-  async create(data: CreateSaleInput) {
+  async create(data: CreateSaleInput): Promise<typeof sala.$inferSelect> {
     const [newSale] = await db
       .insert(sala)
       .values({
@@ -19,17 +28,17 @@ export class SaleRepository {
     return newSale;
   }
 
-  async findById(id: string) {
+  async findById(id: string): Promise<typeof sala.$inferSelect> {
     const [foundSale] = await db.select().from(sala).where(eq(sala.id, id));
     return foundSale;
   }
 
-  async findByName(name: string) {
+  async findByName(name: string): Promise<typeof sala.$inferSelect> {
     const [foundSale] = await db.select().from(sala).where(eq(sala.nome, name));
-    return ok(foundSale);
+    return foundSale;
   }
 
-  async findAll(page: number, limit: number) {
+  async findAll(page: number, limit: number): Promise<SalePaginate> {
     const offset = (page - 1) * limit;
 
     const data = await db.select().from(sala).limit(limit).offset(offset);
@@ -48,7 +57,7 @@ export class SaleRepository {
     return find;
   }
 
-  async update(id: string, data: UpdateSaleInput) {
+  async update(id: string, data: UpdateSaleInput): Promise<typeof sala.$inferSelect> {
     const [updatedSale] = await db
       .update(sala)
       .set({ ...data, aggiornata_il: new Date() })
@@ -58,12 +67,12 @@ export class SaleRepository {
     return updatedSale;
   }
 
-  async updateExistence(id: string, data: { eliminata: boolean }) {
-    await db
+  async updateExistence(id: string): Promise<typeof sala.$inferSelect> {
+    const [deletedSala] = await db
       .update(sala)
-      .set({ ...data, aggiornata_il: new Date(), eliminata: true })
+      .set({ aggiornata_il: new Date(), eliminata: true })
       .where(eq(sala.id, id))
       .returning();
-    return data.eliminata;
+    return deletedSala;
   }
 }

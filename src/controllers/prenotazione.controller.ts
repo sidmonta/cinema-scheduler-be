@@ -7,10 +7,10 @@ import type {
 import { UnauthorizedError } from '../config/app-error.js';
 
 export class PrenotazioneController {
-  constructor(private readonly service: PrenotazioneService) {}
+  constructor(private readonly prenotazioneService: PrenotazioneService) {}
 
   // POST /
-  create = async (req: Request, res: Response) => {
+  create = async (req: Request, res: Response): Promise<Response> => {
     // Recupero automatico ID utente dal Token JWT
     const utenteId = req.user?.sub;
 
@@ -19,7 +19,7 @@ export class PrenotazioneController {
     }
 
     const body = req.body as CreatePrenotazioneInput;
-    const prenotazione = await this.service.create(utenteId, body);
+    const prenotazione = await this.prenotazioneService.create(utenteId, body);
 
     return res.status(201).json({
       success: true,
@@ -28,7 +28,7 @@ export class PrenotazioneController {
   };
 
   // GET /mie (o /utente)
-  getPrenotazioniByUser = async (req: Request, res: Response) => {
+  getPrenotazioniByUser = async (req: Request, res: Response): Promise<Response> => {
     const utenteId = req.user?.sub;
 
     if (!utenteId) {
@@ -38,7 +38,7 @@ export class PrenotazioneController {
     // Cast pulito dai parametri di query validati dallo schema Zod
     const { page, limit } = req.query as unknown as PrenotazionePaginationQueryInput;
 
-    const result = await this.service.getPrenotazioniByUser(utenteId, page, limit);
+    const result = await this.prenotazioneService.getPrenotazioniByUser(utenteId, page, limit);
 
     return res.status(200).json({
       success: true,
@@ -47,7 +47,7 @@ export class PrenotazioneController {
   };
 
   // GET /:id
-  getById = async (req: Request, res: Response) => {
+  getById = async (req: Request, res: Response): Promise<Response> => {
     const utenteId = req.user?.sub;
 
     if (!utenteId) {
@@ -55,7 +55,7 @@ export class PrenotazioneController {
     }
 
     const id = req.params.id as string;
-    const result = await this.service.getById(id, utenteId);
+    const result = await this.prenotazioneService.getById(id, utenteId);
 
     return res.status(200).json({
       success: true,
@@ -64,16 +64,13 @@ export class PrenotazioneController {
   };
 
   // DELETE /:id
-  delete = async (req: Request, res: Response) => {
+  delete = async (req: Request, res: Response): Promise<Response> => {
     const utenteId = req.user?.sub;
-
     if (!utenteId) {
       throw new UnauthorizedError('Utente non autenticato o token non valido.');
     }
-
     const id = req.params.id as string;
-    await this.service.delete(id, utenteId);
-
+    await this.prenotazioneService.delete(id, utenteId);
     return res.status(204).send();
   };
 }

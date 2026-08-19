@@ -5,7 +5,7 @@ import type { Request, Response } from 'express';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  register = async (req: Request, res: Response) => {
+  register = async (req: Request, res: Response): Promise<Response> => {
     const parseResult = registerBodySchema.safeParse(req.body);
     if (!parseResult.success) {
       return res.status(400).json({ success: false, errors: parseResult.error.format() });
@@ -21,7 +21,7 @@ export class AuthController {
     return res.status(201).json({ success: true, data: result.data });
   };
 
-  login = async (req: Request, res: Response) => {
+  login = async (req: Request, res: Response): Promise<Response> => {
     const parseResult = loginBodySchema.safeParse(req.body);
     if (!parseResult.success) {
       return res.status(400).json({ success: false, errors: parseResult.error.format() });

@@ -4,6 +4,7 @@ import { sala, proiezione, prenotazione } from '../db/schema.js';
 import type { PrenotazioneRepository } from '../repositories/prenotazione.repository.js';
 import type { ProiezioneRepository } from '../repositories/proiezione.repository.js';
 import type { SaleRepository } from '../repositories/sale.repository.js';
+import { NotFoundError } from '../config/app-error.js';
 
 interface GeneraMatriceParams {
   riga: number;
@@ -11,11 +12,42 @@ interface GeneraMatriceParams {
   prenotazioni: Array<{ riga: number; colonna: number }>;
 }
 
+export interface StatisticaProiezioneItem {
+  proiezioneId: string;
+  salaId: string;
+  nomeSala: string;
+  dataOra: Date;
+  capienzaTotale: number;
+  postiOccupati: number;
+  percentualeOccupazione: number;
+}
+
+export interface MatriceProiezioneResult {
+  proiezioneId: string;
+  salaId: string;
+  nomeSala: string;
+  dataOraInizio: Date;
+  postiOccupati: number;
+  capienzaTotale: number;
+  percentualeOccupazione: number;
+  matriceOccupazione: number[][];
+}
+
+export interface StatistichePaginate {
+  data: StatisticaProiezioneItem[];
+  meta: {
+    page: number;
+    limit: number;
+    totalRecords: number;
+    totalPages: number;
+  };
+}
+
 export class StatisticsService {
   constructor(
-    private readonly prenotazioneRepository: PrenotazioneRepository,
-    private readonly proiezioneRepository: ProiezioneRepository,
-    private readonly salaRepository: SaleRepository,
+    protected readonly prenotazioneRepository: PrenotazioneRepository,
+    protected readonly proiezioneRepository: ProiezioneRepository,
+    protected readonly salaRepository: SaleRepository,
   ) {}
 
   /**
@@ -41,9 +73,8 @@ export class StatisticsService {
   /**
    * 1. REPORT LISTA (Leggero & Fast)
    * Restituisce le statistiche mensili per tutte le proiezioni SENZA generare le matrici.
-   * Evita il sovraccarico di memoria e sblocca l'interfaccia Swagger UI.
    */
-  async statisticsSql(anno: number, mese: number) {
+  async statisticsSql(anno: number, mese: number): Promise<StatisticaProiezioneItem[]> {
     const inizioMese = new Date(anno, mese - 1, 1, 0, 0, 0);
     const fineMese = new Date(anno, mese, 0, 23, 59, 59);
 
@@ -57,12 +88,13 @@ export class StatisticsService {
         postiOccupati: count(prenotazione.id),
         percentualeOccupazione: sql<number>`
           COALESCE(
-            ROUND((COUNT(${prenotazione.id})::decimal / ${sala.capienza}) * 100, 2)::float,
+            ROUND((COUNT(${prenotazione.id})::decimal / NULLIF(${sala.capienza}, 0)) * 100, 2)::float,
             0
           )
         `,
       })
       .from(proiezione)
+      .innerJoin(sala, eq(proiezione.sala_id, sala.id)) // Sala è obbligatoria per una proiezione
       .leftJoin(
         prenotazione,
         and(
@@ -70,8 +102,7 @@ export class StatisticsService {
           eq(prenotazione.stato, 'CONFIRMED'),
           eq(prenotazione.eliminata, false),
         ),
-      )
-      .leftJoin(sala, eq(proiezione.sala_id, sala.id))
+      ) // LeftJoin per non perdere le proiezioni con 0 prenotazioni
       .where(
         and(
           eq(proiezione.eliminata, false),
@@ -87,15 +118,23 @@ export class StatisticsService {
         sala.capienza,
       );
 
-    return proiezioniStat;
+    // Mappatura esplicita per garantire la type safety assoluta con TypeScript
+    return proiezioniStat.map((item) => ({
+      proiezioneId: item.proiezioneId,
+      salaId: item.salaId,
+      nomeSala: item.nomeSala,
+      dataOra: item.dataOra,
+      capienzaTotale: Number(item.capienzaTotale),
+      postiOccupati: Number(item.postiOccupati),
+      percentualeOccupazione: Number(item.percentualeOccupazione),
+    }));
   }
 
   /**
    * 2. DETTAGLIO MATRICE (On-Demand)
    * Calcola ed estrae la matrice 2D per UNA singola proiezione specifica.
    */
-  async getMatriceProiezione(proiezioneId: string) {
-    // A. Recupera la proiezione con le informazioni della relativa sala
+  async getMatriceProiezione(proiezioneId: string): Promise<MatriceProiezioneResult> {
     const [proiezioneConSala] = await db
       .select({
         proiezioneId: proiezione.id,
@@ -111,10 +150,9 @@ export class StatisticsService {
       .where(and(eq(proiezione.id, proiezioneId), eq(proiezione.eliminata, false)));
 
     if (!proiezioneConSala) {
-      return null;
+      throw new NotFoundError('Proiezione non trovata');
     }
 
-    // B. Estrai solo i posti occupati per QUESTA specifica proiezione
     const postiPrenotati = await db
       .select({
         riga: prenotazione.riga,
@@ -129,7 +167,6 @@ export class StatisticsService {
         ),
       );
 
-    // C. Calcola la matrice 2D
     const numRighe = proiezioneConSala.righe ?? 0;
     const numColonne = proiezioneConSala.colonne ?? 0;
 

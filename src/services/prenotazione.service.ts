@@ -1,49 +1,81 @@
-import type { PrenotazioneRepository } from '../repositories/prenotazione.repository.js';
-import type { CreatePrenotazioneInput } from '../schemas/prenotazione.schema.js';
 import { ConflictError, ForbiddenError, NotFoundError } from '../config/app-error.js';
+import type { prenotazione } from '../db/schema.js';
+import type { PrenotazioneRepository } from '../repositories/prenotazione.repository.js';
 import type { ProiezioneRepository } from '../repositories/proiezione.repository.js';
 import type { SaleRepository } from '../repositories/sale.repository.js';
-import { err } from '../config/result.type.js';
+import type { CreatePrenotazioneInput } from '../schemas/prenotazione.schema.js';
+
+type Prenotazione = typeof prenotazione.$inferSelect;
+
+export interface PaginatedPrenotazioniResponse {
+  data: Awaited<ReturnType<PrenotazioneRepository['findByUtenteId']>>['data'];
+  meta: {
+    page: number;
+    limit: number;
+    totalRecords: number;
+    totalPages: number;
+  };
+}
 
 export class PrenotazioneService {
   constructor(
-    private readonly repository: PrenotazioneRepository,
+    private readonly prenotazioneRepository: PrenotazioneRepository,
     private readonly proiezioneRepository: ProiezioneRepository,
     private readonly salaRepository: SaleRepository,
   ) {}
 
-  async create(utenteId: string, input: CreatePrenotazioneInput) {
+  async create(utenteId: string, input: CreatePrenotazioneInput): Promise<Prenotazione> {
     const proiezione = await this.proiezioneRepository.findById(input.proiezioneId);
     if (!proiezione) {
-      return err(new NotFoundError('Proiezione non trovata'));
+      throw new NotFoundError('Proiezione non trovata');
     }
-    const prenotazioniAttuali = await this.repository.countByProiezioneId(input.proiezioneId);
+    const prenotazioniAttuali = await this.prenotazioneRepository.countByProiezioneId(
+      input.proiezioneId,
+    );
     const sala = (await this.salaRepository.findById(proiezione.sala_id))!;
     const righe = sala.righe;
     const colonne = sala.colonne;
     if (prenotazioniAttuali >= sala.capienza!) {
-      return err(new ForbiddenError('La proiezione selezionata è sold out'));
+      throw new ForbiddenError('La proiezione selezionata è sold out');
     }
     if (input.colonna > colonne || input.riga > righe) {
-      return err(new ForbiddenError('Il posto selezionato è inesistente'));
+      throw new ForbiddenError('Il posto selezionato è inesistente');
     }
-    const result = await this.repository.createConConcorrenza({
-      utente_id: utenteId, // Automatico dal token
+
+    const result = await this.prenotazioneRepository.createConConcorrenza({
+      utente_id: utenteId,
       proiezione_id: input.proiezioneId,
       riga: input.riga,
       colonna: input.colonna,
       stato: input.stato,
     });
-    if (!result.success) {
+
+    // Controllo della proprietà "success" e dell'effettiva presenza dei dati
+    if (
+      !result ||
+      !('success' in result) ||
+      !result.success ||
+      !('data' in result) ||
+      !result.data
+    ) {
       throw new ConflictError(
         'Il posto selezionato è già stato prenotato o è in corso di prenotazione da un altro utente.',
       );
     }
-    return result.data;
+
+    return result.data as Prenotazione;
   }
 
-  async getPrenotazioniByUser(utenteId: string, page: number = 1, limit: number = 10) {
-    const { data, totalRecords } = await this.repository.findByUtenteId(utenteId, page, limit);
+  async getPrenotazioniByUser(
+    utenteId: string,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<PaginatedPrenotazioniResponse> {
+    const { data, totalRecords } = await this.prenotazioneRepository.findByUtenteId(
+      utenteId,
+      page,
+      limit,
+    );
 
     return {
       data,
@@ -56,18 +88,19 @@ export class PrenotazioneService {
     };
   }
 
-  // 3. Recupero Singola Prenotazione tramite ID
-  async getById(id: string, utenteId: string) {
-    const prenotazione = await this.repository.findByIdAndUtenteId(id, utenteId);
+  async getById(
+    id: string,
+    utenteId: string,
+  ): Promise<NonNullable<Awaited<ReturnType<PrenotazioneRepository['findByIdAndUtenteId']>>>> {
+    const prenotazione = await this.prenotazioneRepository.findByIdAndUtenteId(id, utenteId);
     if (!prenotazione) {
       throw new NotFoundError('Prenotazione non trovata.');
     }
     return prenotazione;
   }
 
-  // 4. Annullamento / Eliminazione (Soft Delete)
-  async delete(id: string, utenteId: string) {
-    const prenotazione = await this.repository.findByIdAndUtenteId(id, utenteId);
+  async delete(id: string, utenteId: string): Promise<boolean> {
+    const prenotazione = await this.prenotazioneRepository.findByIdAndUtenteId(id, utenteId);
     if (!prenotazione) {
       throw new NotFoundError('Prenotazione non trovata o già annullata.');
     }
@@ -83,7 +116,7 @@ export class PrenotazioneService {
         "La cancellazione può essere effettuata fino a 2 ore prima dell'evento.",
       );
     }
-    const deleted = await this.repository.softDelete(id, utenteId);
+    const deleted = await this.prenotazioneRepository.softDelete(id, utenteId);
     if (!deleted) {
       throw new NotFoundError('Impossibile annullare la prenotazione.');
     }
