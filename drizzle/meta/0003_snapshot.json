@@ -1,0 +1,633 @@
+{
+  "id": "d29cc337-4b43-4d46-82dd-2463f1927c62",
+  "prevId": "19cf3400-e21b-43be-bb4a-88f8b5803471",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.cinema": {
+      "name": "cinema",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "nome": {
+          "name": "nome",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "indirizzo": {
+          "name": "indirizzo",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "citta": {
+          "name": "citta",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "telefono": {
+          "name": "telefono",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "creata_il": {
+          "name": "creata_il",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "aggiornata_il": {
+          "name": "aggiornata_il",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "eliminata": {
+          "name": "eliminata",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.film": {
+      "name": "film",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "titolo": {
+          "name": "titolo",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "durata_minuti": {
+          "name": "durata_minuti",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "genere": {
+          "name": "genere",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "classificazione": {
+          "name": "classificazione",
+          "type": "classificazione",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "creata_il": {
+          "name": "creata_il",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "aggiornata_il": {
+          "name": "aggiornata_il",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "eliminata": {
+          "name": "eliminata",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.posto": {
+      "name": "posto",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "prenotazione_id": {
+          "name": "prenotazione_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "riga": {
+          "name": "riga",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "colonna": {
+          "name": "colonna",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "creata_il": {
+          "name": "creata_il",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "aggiornata_il": {
+          "name": "aggiornata_il",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "eliminata": {
+          "name": "eliminata",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "posto_prenotazione_id_prenotazione_id_fk": {
+          "name": "posto_prenotazione_id_prenotazione_id_fk",
+          "tableFrom": "posto",
+          "tableTo": "prenotazione",
+          "columnsFrom": [
+            "prenotazione_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.prenotazione": {
+      "name": "prenotazione",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "utente_id": {
+          "name": "utente_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "proiezione_id": {
+          "name": "proiezione_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "riga": {
+          "name": "riga",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "colonna": {
+          "name": "colonna",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "stato": {
+          "name": "stato",
+          "type": "stato",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'PENDING'"
+        },
+        "creata_il": {
+          "name": "creata_il",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "aggiornata_il": {
+          "name": "aggiornata_il",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "eliminata": {
+          "name": "eliminata",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {
+        "unique_posto_proiezione_idx": {
+          "name": "unique_posto_proiezione_idx",
+          "columns": [
+            {
+              "expression": "proiezione_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "riga",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "colonna",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "prenotazione_utente_id_utente_id_fk": {
+          "name": "prenotazione_utente_id_utente_id_fk",
+          "tableFrom": "prenotazione",
+          "tableTo": "utente",
+          "columnsFrom": [
+            "utente_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "prenotazione_proiezione_id_proiezione_id_fk": {
+          "name": "prenotazione_proiezione_id_proiezione_id_fk",
+          "tableFrom": "prenotazione",
+          "tableTo": "proiezione",
+          "columnsFrom": [
+            "proiezione_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.proiezione": {
+      "name": "proiezione",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "sala_id": {
+          "name": "sala_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "film_id": {
+          "name": "film_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data_ora_inizio": {
+          "name": "data_ora_inizio",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data_ora_fine": {
+          "name": "data_ora_fine",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "creata_il": {
+          "name": "creata_il",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "aggiornata_il": {
+          "name": "aggiornata_il",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "eliminata": {
+          "name": "eliminata",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "proiezione_sala_id_sala_id_fk": {
+          "name": "proiezione_sala_id_sala_id_fk",
+          "tableFrom": "proiezione",
+          "tableTo": "sala",
+          "columnsFrom": [
+            "sala_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "proiezione_film_id_film_id_fk": {
+          "name": "proiezione_film_id_film_id_fk",
+          "tableFrom": "proiezione",
+          "tableTo": "film",
+          "columnsFrom": [
+            "film_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.sala": {
+      "name": "sala",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "cinema_id": {
+          "name": "cinema_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nome": {
+          "name": "nome",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "righe": {
+          "name": "righe",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "colonne": {
+          "name": "colonne",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "capienza": {
+          "name": "capienza",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "generated": {
+            "as": "\"righe\" * \"colonne\"",
+            "type": "stored"
+          }
+        },
+        "creata_il": {
+          "name": "creata_il",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "aggiornata_il": {
+          "name": "aggiornata_il",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "eliminata": {
+          "name": "eliminata",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "sala_cinema_id_cinema_id_fk": {
+          "name": "sala_cinema_id_cinema_id_fk",
+          "tableFrom": "sala",
+          "tableTo": "cinema",
+          "columnsFrom": [
+            "cinema_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.utente": {
+      "name": "utente",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "password": {
+          "name": "password",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nome": {
+          "name": "nome",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cognome": {
+          "name": "cognome",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ruolo": {
+          "name": "ruolo",
+          "type": "ruolo",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'USER'"
+        },
+        "creata_il": {
+          "name": "creata_il",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "aggiornata_il": {
+          "name": "aggiornata_il",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "eliminata": {
+          "name": "eliminata",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "utente_email_unique": {
+          "name": "utente_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.classificazione": {
+      "name": "classificazione",
+      "schema": "public",
+      "values": [
+        "T",
+        "14+",
+        "18+"
+      ]
+    },
+    "public.ruolo": {
+      "name": "ruolo",
+      "schema": "public",
+      "values": [
+        "ADMIN",
+        "USER"
+      ]
+    },
+    "public.stato": {
+      "name": "stato",
+      "schema": "public",
+      "values": [
+        "CONFIRMED",
+        "PENDING",
+        "CANCELLED"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
