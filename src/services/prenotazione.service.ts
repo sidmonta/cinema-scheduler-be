@@ -122,4 +122,26 @@ export class PrenotazioneService {
     }
     return true;
   }
+
+  async getPrenotazioniByProiezioneId(
+    utenteId: string,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<PaginatedPrenotazioniResponse> {
+    const { data, totalRecords } = await this.prenotazioneRepository.findByProiezioneId(
+      utenteId,
+      page,
+      limit,
+    );
+
+    return {
+      data,
+      meta: {
+        page,
+        limit,
+        totalRecords,
+        totalPages: Math.ceil(totalRecords / limit),
+      },
+    };
+  }
 }

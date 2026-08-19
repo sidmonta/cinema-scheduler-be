@@ -508,6 +508,37 @@ registry.registerPath({
   },
 });
 
+// 5. GET /prenotazioni/proiezioneId/{id}
+registry.registerPath({
+  method: 'get',
+  path: '/prenotazioni/proiezioneId/{id}',
+  tags: ['Prenotazioni'],
+  summary: 'Ottieni la lista delle prenotazioni per una determinata proiezione',
+  request: {
+    params: proiezioneIdParamSchema,
+    query: prenotazionePaginationQuerySchema,
+  },
+  responses: {
+    200: {
+      description: 'Lista prenotazioni recuperata con successo',
+      content: {
+        'application/json': {
+          schema: z.object({
+            data: z.array(PrenotazioneSchema),
+            meta: z.object({
+              page: z.number(),
+              limit: z.number(),
+              totalRecords: z.number(),
+              totalPages: z.number(),
+            }),
+          }),
+        },
+      },
+    },
+    401: { description: 'Utente non autenticato' },
+  },
+});
+
 // --- ROTTE STATISTICHE ---
 // 1. GET /statistiche
 

@@ -18,7 +18,7 @@ const repository = new PrenotazioneRepository();
 const proiezioneRepository = new ProiezioneRepository();
 const saleRepository = new SaleRepository();
 const service = new PrenotazioneService(repository, proiezioneRepository, saleRepository);
-const controller = new PrenotazioneController(service);
+const controller = new PrenotazioneController(service, proiezioneRepository);
 
 // Il middleware 'authenticate' popola req.user con il token decodificato
 router.post('/', authenticate, validate(createPrenotazioneSchema), controller.create);
@@ -29,6 +29,7 @@ router.get(
   controller.getPrenotazioniByUser,
 );
 router.get('/:id', authenticate, validate(getPrenotazioneByIdSchema), controller.getById);
+router.get('/proiezioneId/:id', authenticate, controller.getPrenotazioniByProiezione);
 router.delete('/:id', authenticate, validate(deletePrenotazioneSchema), controller.delete);
 
 export default router;

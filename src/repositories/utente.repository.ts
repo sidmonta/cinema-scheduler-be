@@ -38,7 +38,6 @@ export class UtenteRepository {
       .from(prenotazione)
       .innerJoin(utente, eq(prenotazione.utente_id, utente.id))
       .where(whereConditions)
-      .limit(limit)
       .offset(offset);
 
     const [{ total }] = await db

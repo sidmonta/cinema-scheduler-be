@@ -16,6 +16,8 @@ export async function inviaEmailSimulata(email: string, proiezioneId: string): P
   );
 }
 
+let prova = 0;
+
 export class Email {
   async notificaSequenziale(
     clienti: Array<{ email: string }>,
@@ -23,11 +25,13 @@ export class Email {
   ): Promise<void> {
     for (const item of clienti) {
       try {
+        prova = prova + 1;
         await inviaEmailSimulata(item.email, proiezioneId);
       } catch (err) {
         console.error(`[NOTIFICA FALLITA - SEQ] Email non inviata a ${item.email}:`, err);
       }
     }
+    console.log(` CHIAMATE: ${prova} `);
   }
 
   async notificaParallelo(

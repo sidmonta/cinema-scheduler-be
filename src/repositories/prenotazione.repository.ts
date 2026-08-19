@@ -142,4 +142,29 @@ export class PrenotazioneRepository {
 
     return Number(totale);
   }
+
+  async findByProiezioneId(
+    proiezioneId: string,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<PrenotazioniPaginate> {
+    const offset = (page - 1) * limit;
+
+    const data = await db
+      .select()
+      .from(prenotazione)
+      .where(and(eq(prenotazione.proiezione_id, proiezioneId), eq(prenotazione.eliminata, false)))
+      .limit(limit)
+      .offset(offset);
+
+    const [{ totale }] = await db
+      .select({ totale: count() })
+      .from(prenotazione)
+      .where(and(eq(prenotazione.proiezione_id, proiezioneId), eq(prenotazione.eliminata, false)));
+
+    return {
+      data,
+      totalRecords: Number(totale),
+    };
+  }
 }

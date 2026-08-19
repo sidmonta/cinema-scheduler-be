@@ -5,9 +5,13 @@ import type {
   PrenotazionePaginationQueryInput,
 } from '../schemas/prenotazione.schema.js';
 import { UnauthorizedError } from '../config/app-error.js';
+import { ProiezioneRepository } from '../repositories/proiezione.repository.js';
 
 export class PrenotazioneController {
-  constructor(private readonly prenotazioneService: PrenotazioneService) {}
+  constructor(
+    private readonly prenotazioneService: PrenotazioneService,
+    private readonly proiezioneRepository: ProiezioneRepository,
+  ) {}
 
   // POST /
   create = async (req: Request, res: Response): Promise<Response> => {
@@ -72,5 +76,28 @@ export class PrenotazioneController {
     const id = req.params.id as string;
     await this.prenotazioneService.delete(id, utenteId);
     return res.status(204).send();
+  };
+
+  // GET /proiezioneId/:id
+  getPrenotazioniByProiezione = async (req: Request, res: Response): Promise<Response> => {
+    const utenteId = req.user?.sub;
+    const proiezioneId = req.params.id as string;
+
+    if (!utenteId) {
+      throw new UnauthorizedError('Utente non autenticato o token non valido.');
+    }
+
+    const { page, limit } = req.query as unknown as PrenotazionePaginationQueryInput;
+
+    const result = await this.prenotazioneService.getPrenotazioniByProiezioneId(
+      proiezioneId,
+      page,
+      limit,
+    );
+
+    return res.status(200).json({
+      success: true,
+      ...result,
+    });
   };
 }

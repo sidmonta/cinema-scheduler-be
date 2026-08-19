@@ -8,7 +8,7 @@ import {
   createProiezioneSchema,
   deletProiezioneSchema,
   getPalinsestoSchema,
-  proiezioneIdParamSchema,
+  getProiezioneByIdSchema,
   proiezionePaginationQuerySchema,
   updateProiezioneSchema,
 } from '../schemas/proiezione.schema.js';
@@ -41,7 +41,7 @@ router.post(
   proiezioneController.create,
 );
 router.get('/', validate(proiezionePaginationQuerySchema), proiezioneController.getAll);
-router.get('/:id', validate(proiezioneIdParamSchema), proiezioneController.getById);
+router.get('/:id', validate(getProiezioneByIdSchema), proiezioneController.getById);
 router.patch(
   '/:id',
   authenticate,
