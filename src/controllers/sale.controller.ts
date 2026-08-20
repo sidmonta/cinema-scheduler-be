@@ -16,7 +16,7 @@ export class SaleController {
   };
 
   getAll = async (req: Request, res: Response): Promise<void> => {
-    const query = res.locals.query as unknown as SalePaginationQuery;
+    const query = req.query as unknown as SalePaginationQuery;
     const result = await this.saleService.getAllSales(query);
     res.status(200).json(result);
   };

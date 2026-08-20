@@ -35,7 +35,7 @@ app.get('/health', (_req, res) => {
 });
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(openApiDocument));
 app.use('/api/v1/films', filmRoutes);
-app.use('/api/v1/sales', saleRoutes);
+app.use('/api/v1/sale', saleRoutes);
 app.use('/api/v1/proiezioni', proiezioneRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/prenotazioni', prenotazioneRoutes);
