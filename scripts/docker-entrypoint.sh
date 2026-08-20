@@ -7,11 +7,11 @@ until pg_isready -h postgres -U "${POSTGRES_USER:-postgres}" -d "${POSTGRES_DB:-
 done
 echo "PostgreSQL is ready."
 
-echo "Running migrations..."
-npx drizzle-kit migrate --config=drizzle.config.ts
+#echo "Running migrations..."
+#npx drizzle-kit migrate --config=drizzle.config.ts
 
-echo "Seeding database..."
-npm run db:seed-prod
+#echo "Seeding database..."
+#npm run db:seed-prod
 
 echo "Starting development server..."
 exec npx tsx watch src/app.ts
