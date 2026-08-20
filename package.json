@@ -29,7 +29,10 @@
     "db:studio": "drizzle-kit studio --config=drizzle.config.ts",
     "db:seed": "tsx --env-file=.env src/seed/run.seeding.ts",
     "db:seed-prod": "tsx src/seed/run.seeding.ts",
-    "db:check": "drizzle-kit check --config=drizzle.config.ts"
+    "db:check": "drizzle-kit check --config=drizzle.config.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "lint-staged": {
     "src/**/*.ts": [
@@ -53,6 +56,7 @@
     "postgres": "^3.4.9",
     "swagger-ui-express": "^5.0.1",
     "undici-types": "^8.3.0",
+    "vitest": "^4.1.11",
     "zod": "^4.4.3"
   },
   "devDependencies": {
